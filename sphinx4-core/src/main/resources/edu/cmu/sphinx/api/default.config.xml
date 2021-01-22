@@ -33,6 +33,8 @@
 
   <component name="decoder" type="edu.cmu.sphinx.decoder.Decoder">
     <property name="searchManager" value="wordPruningLookaheadSearchManager"/>
+    <property name="fireNonFinalResults" value="true"/>
+    <property name="featureBlockSize" value="1"/>
   </component>
 
   <component name="alignerSearchManager"
@@ -42,7 +44,7 @@
     <property name="scorer" value="trivialScorer"/>
     <property name="activeListFactory" value="activeList"/>
   </component>
-  
+
   <component name="allphoneSearchManager"
     type="edu.cmu.sphinx.decoder.search.SimpleBreadthFirstSearchManager">
     <property name="linguist" value="allphoneLinguist"/>
@@ -50,7 +52,7 @@
     <property name="scorer" value="trivialScorer"/>
     <property name="activeListFactory" value="activeList"/>
   </component>
-  
+
   <component name="simpleSearchManager"
     type="edu.cmu.sphinx.decoder.search.SimpleBreadthFirstSearchManager">
     <property name="linguist" value="flatLinguist"/>
@@ -100,7 +102,7 @@
     <property name="absoluteBeamWidth" value="${absoluteBeamWidth}"/>
     <property name="relativeBeamWidth" value="${relativeBeamWidth}"/>
   </component>
-  
+
   <component name="fastmatchActiveList"
     type="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
     <property name="absoluteBeamWidth" value="${absoluteBeamWidth}"/>
@@ -148,16 +150,16 @@
     <property name="silenceInsertionProbability"
       value="${silenceInsertionProbability}"/>
     <property name="languageWeight" value="${languageWeight}"/>
-    <property name="unitManager" value="unitManager"/>    
+    <property name="unitManager" value="unitManager"/>
   </component>
-  
+
   <component name="allphoneLinguist"
     type="edu.cmu.sphinx.linguist.allphone.AllphoneLinguist">
     <property name="acousticModel" value="acousticModel"/>
     <property name="useContextDependentPhones" value="false"/>
     <property name="phoneInsertionProbability" value="0.05"/>
   </component>
-  
+
   <component name="flatLinguist"
     type="edu.cmu.sphinx.linguist.flat.FlatLinguist">
     <property name="grammar" value="jsgfGrammar"/>
@@ -168,7 +170,7 @@
       value="${silenceInsertionProbability}"/>
     <property name="languageWeight" value="${languageWeight}"/>
     <property name="unitManager" value="unitManager"/>
-    
+
     <property name="addOutOfGrammarBranch" value="true"/>
     <property name="outOfGrammarProbability" value="${oogProbability}"/>
     <property name="phoneInsertionProbability" value="${oogLoopProbability}"/>
@@ -206,21 +208,21 @@
     <property name="unigramWeight" value=".7"/>
   </component>
 
-  <component name="largeTrigramModel" 
+  <component name="largeTrigramModel"
     type="edu.cmu.sphinx.linguist.language.ngram.large.LargeTrigramModel">
     <property name="location" value=""/>
     <property name="unigramWeight" value=".5"/>
     <property name="maxDepth" value="3"/>
     <property name="dictionary" value="dictionary"/>
   </component>
-  
+
   <component name="dynamicTrigramModel"
     type="edu.cmu.sphinx.linguist.language.ngram.DynamicTrigramModel">
     <property name="dictionary" value="dictionary"/>
     <property name="maxDepth" value="3"/>
     <property name="unigramWeight" value=".7"/>
-  </component>          
-  
+  </component>
+
   <component name="alignerGrammar"
     type="edu.cmu.sphinx.linguist.language.grammar.AlignerGrammar">
     <property name="dictionary" value="dictionary"/>
@@ -332,7 +334,7 @@
     <property name="frontend" value="liveFrontEnd"/>
     <property name="recognizer" value="recognizer"/>
   </component>
-                                          
+
   <component name="memoryTracker"
     type="edu.cmu.sphinx.instrumentation.MemoryTracker">
     <property name="recognizer" value="recognizer"/>
