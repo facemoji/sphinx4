@@ -1,30 +1,50 @@
 /*
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 package edu.cmu.sphinx.linguist.acoustic.tiedstate;
 
+import static edu.cmu.sphinx.linguist.acoustic.tiedstate.Pool.Feature.NUM_GAUSSIANS_PER_STATE;
+import static edu.cmu.sphinx.linguist.acoustic.tiedstate.Pool.Feature.NUM_SENONES;
+import static edu.cmu.sphinx.linguist.acoustic.tiedstate.Pool.Feature.NUM_STREAMS;
+
 import edu.cmu.sphinx.decoder.adaptation.ClusteredDensityFileData;
 import edu.cmu.sphinx.decoder.adaptation.Transform;
-import edu.cmu.sphinx.linguist.acoustic.*;
+import edu.cmu.sphinx.linguist.acoustic.Context;
+import edu.cmu.sphinx.linguist.acoustic.HMM;
+import edu.cmu.sphinx.linguist.acoustic.HMMPosition;
+import edu.cmu.sphinx.linguist.acoustic.LeftRightContext;
+import edu.cmu.sphinx.linguist.acoustic.Unit;
+import edu.cmu.sphinx.linguist.acoustic.UnitManager;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.tiedmixture.MixtureComponentSet;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.tiedmixture.PrunableMixtureComponent;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.tiedmixture.SetBasedGaussianMixture;
-import static edu.cmu.sphinx.linguist.acoustic.tiedstate.Pool.Feature.*;
 import edu.cmu.sphinx.util.ExtendedStreamTokenizer;
 import edu.cmu.sphinx.util.LogMath;
 import edu.cmu.sphinx.util.TimerPool;
 import edu.cmu.sphinx.util.Utilities;
-import edu.cmu.sphinx.util.props.*;
-
-import java.io.*;
+import edu.cmu.sphinx.util.props.ConfigurationManagerUtils;
+import edu.cmu.sphinx.util.props.PropertyException;
+import edu.cmu.sphinx.util.props.PropertySheet;
+import edu.cmu.sphinx.util.props.S4Boolean;
+import edu.cmu.sphinx.util.props.S4Component;
+import edu.cmu.sphinx.util.props.S4Double;
+import edu.cmu.sphinx.util.props.S4Integer;
+import edu.cmu.sphinx.util.props.S4String;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -42,7 +62,7 @@ import java.util.logging.Logger;
  * dictionary and language model files are not required to be in the package.
  * You can specify their locations separately.
  * <p>
- * Configuration file should set mandatory property of component: <b>location</b> - 
+ * Configuration file should set mandatory property of component: <b>location</b> -
  * this specifies the directory where the actual model
  * data files are. You can use <b>resource:</b> prefix to refer to files packed
  * inside jar or any other URI scheme.
@@ -87,7 +107,7 @@ public class Sphinx3Loader implements Loader {
      */
     @S4Double(defaultValue = 1e-7f)
     public final static String PROP_MW_FLOOR = "mixtureWeightFloor";
-    
+
     /**
      * Number of top Gaussians to use in scoring
      */
@@ -139,7 +159,7 @@ public class Sphinx3Loader implements Loader {
     // Configuration variables
     // --------------------------------------
     protected Logger logger;
-    private URL location;
+    private String location;
     protected float distFloor;
     protected float mixtureWeightFloor;
     protected float varianceFloor;
@@ -151,7 +171,7 @@ public class Sphinx3Loader implements Loader {
             UnitManager unitManager, float distFloor, float mixtureWeightFloor,
             float varianceFloor, int topGauNum, boolean useCDUnits) {
 
-        init(location, unitManager, distFloor,
+        init(location.getPath(), unitManager, distFloor,
                 mixtureWeightFloor, varianceFloor, topGauNum, useCDUnits,
                 Logger.getLogger(getClass().getName()));
     }
@@ -161,13 +181,13 @@ public class Sphinx3Loader implements Loader {
             float varianceFloor, int topGauNum, boolean useCDUnits)
             throws MalformedURLException, ClassNotFoundException {
 
-        init(ConfigurationManagerUtils.resourceToURL(location),
-                unitManager, distFloor, mixtureWeightFloor,
+        init(location,
+            unitManager, distFloor, mixtureWeightFloor,
                 varianceFloor, topGauNum, useCDUnits,
                 Logger.getLogger(getClass().getName()));
     }
 
-    protected void init(URL location,
+    protected void init(String location,
             UnitManager unitManager, float distFloor, float mixtureWeightFloor,
             float varianceFloor, int topGauNum, boolean useCDUnits, Logger logger) {
         logMath = LogMath.getLogMath();
@@ -200,15 +220,15 @@ public class Sphinx3Loader implements Loader {
     public int[] getVectorLength() {
         return vectorLength;
     }
-    
+
     public int[] getSenone2Ci() {
         return senone2ci;
     }
 
     public String getLocation() {
-        return this.location.getPath();
+        return this.location;
     }
-    
+
     public boolean hasTiedMixtures() {
         String modelType = modelProps.getProperty("-model", "cont");
         return modelType.equals("ptm");
@@ -216,7 +236,7 @@ public class Sphinx3Loader implements Loader {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
 
-        init(ConfigurationManagerUtils.getResource(PROP_LOCATION, ps),
+        init(ps.getString(PROP_LOCATION),
                 (UnitManager) ps.getComponent(PROP_UNIT_MANAGER),
                 ps.getFloat(PROP_MC_FLOOR), ps.getFloat(PROP_MW_FLOOR),
                 ps.getFloat(PROP_VARIANCE_FLOOR),
@@ -228,9 +248,9 @@ public class Sphinx3Loader implements Loader {
     // ConfigurationManagerUtils.getResource
     // for compatibility reasons. By default it looks for the resources, not
     // for the files.
-    protected InputStream getDataStream(String path) throws IOException,
-            URISyntaxException {
-        return new URL(Utilities.pathJoin(location.toString(), path)).openStream();
+    protected InputStream getDataStream(String path) throws IOException, URISyntaxException {
+        URL url = ConfigurationManagerUtils.resourceToURL(Utilities.pathJoin(location, path));
+        return url == null ? null : url.openStream();
     }
 
     public void load() throws IOException {
@@ -262,7 +282,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Return the HmmManager.
-     * 
+     *
      * @return the hmmManager
      */
     protected HMMManager getHmmManager() {
@@ -271,7 +291,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Return the MatrixPool.
-     * 
+     *
      * @return the matrixPool
      */
     protected Pool<float[][]> getMatrixPool() {
@@ -280,7 +300,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Return the MixtureWeightsPool.
-     * 
+     *
      * @return the mixtureWeightsPool
      */
     protected GaussianWeights getMixtureWeightsPool() {
@@ -294,7 +314,7 @@ public class Sphinx3Loader implements Loader {
      */
     protected void loadModelFiles() throws IOException,
             URISyntaxException {
-        
+
         meansPool = loadDensityFile("means", -Float.MAX_VALUE);
         variancePool = loadDensityFile("variances",
                 varianceFloor);
@@ -302,7 +322,7 @@ public class Sphinx3Loader implements Loader {
         transitionsPool = loadTransitionMatrices("transition_matrices");
         transformMatrix = loadTransformMatrix("feature_transform");
         modelProps = loadModelProps("feat.params");
-        
+
         if (hasTiedMixtures()) {
             //create senone to CI mapping
             getSenoneToCIPhone();
@@ -324,7 +344,7 @@ public class Sphinx3Loader implements Loader {
     public Map<String, Unit> getContextIndependentUnits() {
         return contextIndependentUnits;
     }
-    
+
     /**
      * Creates senone to CI phone mapping, reading model definition file
      */
@@ -382,10 +402,10 @@ public class Sphinx3Loader implements Loader {
 
         est.close();
     }
-    
+
     /**
      * Creates the senone pool from the rest of the pools.
-     * 
+     *
      * @param distFloor
      *            the lowest allowed score
      * @param varianceFloor
@@ -394,7 +414,7 @@ public class Sphinx3Loader implements Loader {
      */
     protected Pool<Senone> createSenonePool(float distFloor, float varianceFloor) {
         Pool<Senone> pool = new Pool<Senone>("senones");
-        
+
         int numMeans = meansPool.size();
         int numVariances = variancePool.size();
         int numGaussiansPerSenone = mixtureWeights.getGauPerState();
@@ -439,10 +459,10 @@ public class Sphinx3Loader implements Loader {
         }
         return pool;
     }
-    
+
     /**
      * Creates the tied senone pool from the rest of the pools.
-     * 
+     *
      * @param distFloor
      *            the lowest allowed score
      * @param varianceFloor
@@ -475,7 +495,7 @@ public class Sphinx3Loader implements Loader {
                 : varianceTransformationMatrixPool.get(0);
         float[] varianceTransformationVector = varianceTransformationVectorPool == null ? null
                 : varianceTransformationVectorPool.get(0);
-        
+
         phoneticTiedMixtures = new MixtureComponentSet[numBase];
         for (int i = 0; i < numBase; i++) {
             ArrayList<PrunableMixtureComponent[]> mixtureComponents = new ArrayList<PrunableMixtureComponent[]>();
@@ -494,7 +514,7 @@ public class Sphinx3Loader implements Loader {
             }
             phoneticTiedMixtures[i] = new MixtureComponentSet(mixtureComponents, topGauNum);
         }
-        
+
         for (int i = 0; i < numSenones; i++) {
             Senone senone = new SetBasedGaussianMixture(mixtureWeights, phoneticTiedMixtures[senone2ci[i]], i);
             pool.put(i, senone);
@@ -505,7 +525,7 @@ public class Sphinx3Loader implements Loader {
     /**
      * Loads the sphinx3 density file, a set of density arrays are created and
      * placed in the given pool.
-     * 
+     *
      * @param path
      *            the name of the data
      * @param floor
@@ -588,7 +608,7 @@ public class Sphinx3Loader implements Loader {
     /**
      * Reads the S3 binary header from the given location + path. Adds header
      * information to the given set of properties.
-     * 
+     *
      * @param path
      *            the name of the file
      * @param props
@@ -636,7 +656,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Reads the next word (text separated by whitespace) from the given stream.
-     * 
+     *
      * @param dis
      *            the input stream
      * @return the next word
@@ -660,7 +680,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Reads a single char from the stream.
-     * 
+     *
      * @param dis
      *            the stream to read
      * @return the next character on the stream
@@ -683,7 +703,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Validates checksum in the stream
-     * 
+     *
      * @param dis
      *            input stream
      * @param doCheckSum
@@ -706,7 +726,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Read an integer from the input stream, byte-swapping as necessary.
-     * 
+     *
      * @param dis
      *            the input stream
      * @return an integer value
@@ -726,7 +746,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Read a float from the input stream, byte-swapping as necessary.
-     * 
+     *
      * @param dis
      *            the input stream
      * @return a floating pint value
@@ -747,7 +767,7 @@ public class Sphinx3Loader implements Loader {
     /**
      * Reads the given number of floats from the stream and returns them in an
      * array of floats.
-     * 
+     *
      * @param dis
      *            the stream to read data from
      * @param size
@@ -768,7 +788,7 @@ public class Sphinx3Loader implements Loader {
     /**
      * Loads the sphinx3 density file, a set of density arrays are created and
      * placed in the given pool.
-     * 
+     *
      * @param useCDUnits
      *            if true, loads also the context dependent units
      * @param inputStream
@@ -932,7 +952,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Returns true if the given senone sequence IDs are the same.
-     * 
+     *
      * @param ssid1 ids of first senone sequence
      * @param ssid2 ids of second senone sequence
      * @return true if the given senone sequence IDs are the same, false
@@ -953,7 +973,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Gets the senone sequence representing the given senones.
-     * 
+     *
      * @param stateid
      *            is the array of senone state ids
      * @return the senone sequence associated with the states
@@ -968,7 +988,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Loads the mixture weights (Binary).
-     * 
+     *
      * @param path
      *            the path to the mixture weight file
      * @param floor
@@ -1027,7 +1047,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Loads the transition matrices (Binary).
-     * 
+     *
      * @param path
      *            the path to the transitions matrices
      * @return a pool of transition matrices
@@ -1084,7 +1104,7 @@ public class Sphinx3Loader implements Loader {
 
     /**
      * Loads the transform matrices (Binary).
-     * 
+     *
      * @param path
      *            the path to the transform matrix
      * @return a transform matrix
@@ -1134,14 +1154,14 @@ public class Sphinx3Loader implements Loader {
         dis.close();
         return result;
     }
-    
+
     public void clearGauScores() {
         if (phoneticTiedMixtures == null)
             return;
         for (MixtureComponentSet mixture : phoneticTiedMixtures)
             mixture.clearStoredScores();
     }
-    
+
     public void setGauScoresQueueLength(int scoresQueueLen) {
         if (phoneticTiedMixtures == null)
             return;
@@ -1184,7 +1204,7 @@ public class Sphinx3Loader implements Loader {
     public float[][] getTransformMatrix() {
         return transformMatrix;
     }
-    
+
     public Pool<Senone> getSenonePool() {
         return senonePool;
     }
@@ -1246,7 +1266,7 @@ public class Sphinx3Loader implements Loader {
             int transformClass = clusters.getClassIndex(index);
             float[] tmean = new float[getVectorLength()[0]];
             float[] mean = meansPool.get(index);
-            
+
             for (int i = 0; i < numStreams; i++) {
                 for (int l = 0; l < getVectorLength()[i]; l++) {
                     tmean[l] = 0;
