@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -53,7 +53,7 @@ import edu.cmu.sphinx.util.props.S4ComponentList;
  * shown in the figure above. If you want to maintain some control of the input DataProcessor, you can create it
  * separately, and use the {@link #setDataSource(edu.cmu.sphinx.frontend.DataProcessor) setDataSource} method to set it
  * as the input DataProcessor. In that case, the input DataProcessor will be prepended to the existing chain of
- * DataProcessors. One common input DataProcessor is the {@link edu.cmu.sphinx.frontend.util.Microphone}, which
+ * DataProcessors. One common input DataProcessor is the {@code edu.cmu.sphinx.frontend.util.Microphone}, which
  * implements the DataProcessor interface.
  * <p>
  * <code> DataProcessor microphone = new Microphone(); <br>microphone.initialize(...);
@@ -142,9 +142,11 @@ public class FrontEnd extends BaseDataProcessor {
     private final List<SignalListener> signalListeners = new ArrayList<SignalListener>();
 
     public FrontEnd(List<DataProcessor> frontEndList) {
+        if (frontEndList.isEmpty()) {
+            throw new IllegalArgumentException("There must be at least one DataProcessor in FrontEnd");
+        }
         initLogger();
-        this.frontEndList = frontEndList;
-        init();
+        init(frontEndList);
     }
 
     public FrontEnd() {
@@ -157,25 +159,15 @@ public class FrontEnd extends BaseDataProcessor {
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        frontEndList = ps.getComponentList(PROP_PIPELINE, DataProcessor.class);
-        init();
+        List<DataProcessor> newFeList = ps.getComponentList(PROP_PIPELINE, DataProcessor.class);
+        init(newFeList);
     }
 
-    private void init() {
+    private void init(List<DataProcessor> frontEndList) {
         this.timer = TimerPool.getTimer(this, "Frontend");
-        
-        last = null;
-        for (DataProcessor dp : frontEndList) {
-            assert dp != null;
-
-            if (last != null)
-                dp.setPredecessor(last);
-
-            if (first == null) {
-                first = dp;
-            }
-            last = dp;
-        }
+        this.frontEndList = DataProcessor.chainProcessors(frontEndList);
+        this.first = frontEndList.get(0);
+        this.last = frontEndList.get(frontEndList.size() - 1);
         initialize();
     }
 

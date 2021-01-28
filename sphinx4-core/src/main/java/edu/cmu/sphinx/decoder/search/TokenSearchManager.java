@@ -23,12 +23,12 @@ abstract public class TokenSearchManager implements SearchManager {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util
      * .props.PropertySheet)
      */
-    public void newProperties(PropertySheet ps) throws PropertyException {       
+    public void newProperties(PropertySheet ps) throws PropertyException {
         buildWordLattice = ps.getBoolean(PROP_BUILD_WORD_LATTICE);
         keepAllTokens = ps.getBoolean(PROP_KEEP_ALL_TOKENS);
     }
@@ -36,7 +36,7 @@ abstract public class TokenSearchManager implements SearchManager {
     /**
      * Find the token to use as a predecessor in resultList given a candidate
      * predecessor. There are three cases here:
-     * 
+     *
      * <ul>
      * <li>We want to store everything in resultList. In that case
      * {@link #keepAllTokens} is set to true and we just store everything that
@@ -48,10 +48,10 @@ abstract public class TokenSearchManager implements SearchManager {
      * from the result list later and {@link #buildWordLattice} is set to true.
      * In this case we want to insert intermediate token to store the score and
      * this token will be used during lattice path collapse to get score on
-     * edge. See {@link edu.cmu.sphinx.result.Lattice} for details of resultList
+     * edge. See {@code edu.cmu.sphinx.result.Lattice} for details of resultList
      * compression.
      * </ul>
-     * 
+     *
      * @param token
      *            the token of interest
      * @return the immediate successor word token

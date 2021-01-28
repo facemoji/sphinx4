@@ -1,9 +1,9 @@
 package edu.cmu.sphinx.frontend.util;
 
-import edu.cmu.sphinx.frontend.*;
-
-import javax.swing.*;
-import java.awt.*;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DoubleData;
 
 /**
  * A VU meter to be plugged into a front-end. Preferably this component should be plugged directly behind the
@@ -19,34 +19,16 @@ import java.awt.*;
 public class VUMeterMonitor extends BaseDataProcessor {
 
     final VUMeter vumeter;
-    final VUMeterPanel vuMeterPanel;
-    final JDialog vuMeterDialog;
 
 
     public VUMeterMonitor() {
         vumeter = new VUMeter();
-
-        vuMeterPanel = new VUMeterPanel();
-        vuMeterPanel.setVu(vumeter);
-        vuMeterPanel.start();
-
-        vuMeterDialog = new JDialog();
-        vuMeterDialog.setBounds(100, 100, 100, 400);
-
-        vuMeterDialog.getContentPane().setLayout(new BorderLayout());
-        vuMeterDialog.getContentPane().add(vuMeterPanel);
-
-        vuMeterDialog.setVisible(true);
     }
 
 
     @Override
     public Data getData() throws DataProcessingException {
         Data d = getPredecessor().getData();
-
-        // show the panel only if  a microphone is used as data source
-        if (d instanceof DataStartSignal)
-            vuMeterPanel.setVisible(FrontEndUtils.getFrontEndProcessor(this, Microphone.class) != null);
 
         if (d instanceof DoubleData)
             vumeter.calculateVULevels(d);
@@ -55,29 +37,4 @@ public class VUMeterMonitor extends BaseDataProcessor {
     }
 
 
-    public JDialog getVuMeterDialog() {
-        return vuMeterDialog;
-    }
-
-
-    /** A little test-function which plugs a microphone directly into the vu-meter.
-     * @param args arguments to use
-     * @throws edu.cmu.sphinx.frontend.DataProcessingException if error occurs
-     */
-    public static void main(String[] args) throws DataProcessingException {
-        Microphone mic = new Microphone( 16000, 16, 1,
-                          true, true, true, 10, false,
-                          "selectChannel", 2, "default", 6400);
-
-        mic.initialize();
-        mic.startRecording();
-
-        VUMeterMonitor monitor = new VUMeterMonitor();
-        monitor.getVuMeterDialog().setModal(true);
-        monitor.setPredecessor(mic);
-
-        while (true) {
-            monitor.getData();
-        }
-    }
 }

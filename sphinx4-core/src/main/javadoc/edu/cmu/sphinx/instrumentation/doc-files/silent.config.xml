@@ -56,7 +56,6 @@
         <property name="decoder" value="digitsDecoder"/>
         <!--
         <propertylist name="monitors">
-            <item>accuracyTracker </item>
             <item>speedTracker </item>
             <item>memoryTracker </item>
             <item>recognizerMonitor </item>
@@ -222,13 +221,6 @@
     <!-- ******************************************************* -->
     <!--  monitors                                               -->
     <!-- ******************************************************* -->
-
-    <component name="accuracyTracker"
-               type="edu.cmu.sphinx.instrumentation.BestPathAccuracyTracker">
-        <property name="recognizer" value="connectedDigitsRecognizer"/>
-        <property name="showAlignedResults" value="false"/>
-        <property name="showRawResults" value="false"/>
-    </component>
 
     <component name="memoryTracker"
                type="edu.cmu.sphinx.instrumentation.MemoryTracker">

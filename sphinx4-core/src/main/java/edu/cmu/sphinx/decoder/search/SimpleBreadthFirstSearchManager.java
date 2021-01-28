@@ -60,13 +60,6 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     public final static String PROP_ACTIVE_LIST_FACTORY = "activeListFactory";
 
     /**
-     * The property that when set to <code>true</code> will cause the recognizer to count up all the tokens in the
-     * active list after every frame.
-     */
-    @S4Boolean(defaultValue = false)
-    public final static String PROP_SHOW_TOKEN_COUNT = "showTokenCount";
-
-    /**
      * The property that sets the minimum score relative to the maximum score in the word list for pruning. Words with a
      * score less than relativeBeamWidth * maximumScore will be pruned from the list
      */
@@ -120,7 +113,6 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     // Working data
     // ------------------------------------
 
-    protected boolean showTokenCount;
     private boolean wantEntryPruning;
     protected Map<SearchState, Token> bestTokenMap;
     private float logRelativeWordBeamWidth;
@@ -133,25 +125,24 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     protected boolean streamEnd;
 
     public SimpleBreadthFirstSearchManager() {
-        
+
     }
 
     /**
      * Creates a manager for simple search
-     * 
+     *
      * @param linguist linguist to configure search space
      * @param pruner pruner to prune extra paths
      * @param scorer scorer to estimate token probability
      * @param activeListFactory factory for list of tokens
-     * @param showTokenCount show count of the tokens during decoding
      * @param relativeWordBeamWidth relative pruning beam for lookahead
      * @param growSkipInterval interval to skip growth step
      * @param wantEntryPruning entry pruning
      */
     public SimpleBreadthFirstSearchManager(Linguist linguist, Pruner pruner,
-                                           AcousticScorer scorer, ActiveListFactory activeListFactory,
-                                           boolean showTokenCount, double relativeWordBeamWidth,
-                                           int growSkipInterval, boolean wantEntryPruning) {
+        AcousticScorer scorer, ActiveListFactory activeListFactory,
+        double relativeWordBeamWidth,
+        int growSkipInterval, boolean wantEntryPruning) {
         this.name = getClass().getName();
         this.logger = Logger.getLogger(name);
         this.logMath = LogMath.getLogMath();
@@ -159,7 +150,6 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
         this.pruner = pruner;
         this.scorer = scorer;
         this.activeListFactory = activeListFactory;
-        this.showTokenCount = showTokenCount;
         this.growSkipInterval = growSkipInterval;
         this.wantEntryPruning = wantEntryPruning;
         this.logRelativeWordBeamWidth = logMath.linearToLog(relativeWordBeamWidth);
@@ -169,7 +159,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        
+
         logMath = LogMath.getLogMath();
         logger = ps.getLogger();
         name = ps.getInstanceName();
@@ -178,14 +168,13 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
         pruner = (Pruner) ps.getComponent(PROP_PRUNER);
         scorer = (AcousticScorer) ps.getComponent(PROP_SCORER);
         activeListFactory = (ActiveListFactory) ps.getComponent(PROP_ACTIVE_LIST_FACTORY);
-        showTokenCount = ps.getBoolean(PROP_SHOW_TOKEN_COUNT);
 
         double relativeWordBeamWidth = ps.getDouble(PROP_RELATIVE_WORD_BEAM_WIDTH);
         growSkipInterval = ps.getInt(PROP_GROW_SKIP_INTERVAL);
         wantEntryPruning = ps.getBoolean(PROP_WANT_ENTRY_PRUNING);
         logRelativeWordBeamWidth = logMath.linearToLog(relativeWordBeamWidth);
-        
-        this.keepAllTokens = true;      
+
+        this.keepAllTokens = true;
     }
 
 
@@ -213,7 +202,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
         boolean done = false;
         Result result = null;
         streamEnd = false;
- 
+
         for (int i = 0; i < nFrames && !done; i++) {
             done = recognize();
         }
@@ -223,15 +212,11 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
         if (activeList.getBestToken() != null) {
             // to make the current result as correct as possible we undo the last search graph expansion here
             ActiveList fixedList = undoLastGrowStep();
-            	
+
             // Now create the result using the fixed active-list.
             if (!streamEnd)
            		result =
-                    new Result(fixedList, resultList, currentFrameNumber, done, linguist.getSearchGraph().getWordTokenFirst(), false);
-        }
-
-        if (showTokenCount) {
-            showTokenCount();
+                    new Result(fixedList, resultList, currentFrameNumber, done, linguist.getSearchGraph().getWordTokenFirst());
         }
 
         return result;
@@ -354,14 +339,14 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
         scoreTimer.start();
         Data data = scorer.calculateScores(activeList.getTokens());
         scoreTimer.stop();
-        
+
         Token bestToken = null;
         if (data instanceof Token) {
             bestToken = (Token)data;
         } else if (data == null) {
         	streamEnd = true;
     	}
-        
+
         if (bestToken != null) {
             hasMoreFrames = true;
             currentCollectTime = bestToken.getCollectTime();
@@ -477,7 +462,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
                 }
             }
             Token predecessor = getResultListPredecessor(token);
-            
+
             // if not emitting, check to see if we've already visited
             // this state during this frame. Expand the token only if we
             // haven't visited it already. This prevents the search
@@ -487,7 +472,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
             if (!nextState.isEmitting()) {
                 Token newToken = new Token(predecessor, nextState, logEntryScore,
                         arc.getInsertionProbability(),
-                        arc.getLanguageProbability(), 
+                        arc.getLanguageProbability(),
                         currentCollectTime);
                 tokensCreated.value++;
                 if (!isVisited(newToken)) {
@@ -495,12 +480,12 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
                 }
                 continue;
             }
-            
+
             Token bestToken = getBestToken(nextState);
-            if (bestToken == null) {        
+            if (bestToken == null) {
                 Token newToken = new Token(predecessor, nextState, logEntryScore,
                         arc.getInsertionProbability(),
-                        arc.getLanguageProbability(), 
+                        arc.getLanguageProbability(),
                         currentFrameNumber);
                 tokensCreated.value++;
                 setBestToken(newToken, nextState);
@@ -509,7 +494,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
                 if (bestToken.getScore() <= logEntryScore) {
                     bestToken.update(predecessor, nextState, logEntryScore,
                             arc.getInsertionProbability(),
-                            arc.getLanguageProbability(), 
+                            arc.getLanguageProbability(),
                             currentCollectTime);
                     viterbiPruned.value++;
                 } else {
@@ -538,29 +523,6 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
             t = t.getPredecessor();
         }
         return false;
-    }
-
-
-    /** Counts all the tokens in the active list (and displays them). This is an expensive operation. */
-    protected void showTokenCount() {
-        if (logger.isLoggable(Level.INFO)) {
-            Set<Token> tokenSet = new HashSet<Token>();
-            for (Token token : activeList) {
-                while (token != null) {
-                    tokenSet.add(token);
-                    token = token.getPredecessor();
-                }
-            }
-            logger.info("Token Lattice size: " + tokenSet.size());
-            tokenSet = new HashSet<Token>();
-            for (Token token : resultList) {
-                while (token != null) {
-                    tokenSet.add(token);
-                    token = token.getPredecessor();
-                }
-            }
-            logger.info("Result Lattice size: " + tokenSet.size());
-        }
     }
 
 

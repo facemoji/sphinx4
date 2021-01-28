@@ -1,22 +1,19 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 
 package edu.cmu.sphinx.linguist.acoustic.tiedstate;
 
-import edu.cmu.sphinx.util.props.Configurable;
-import edu.cmu.sphinx.decoder.adaptation.ClusteredDensityFileData;
-import edu.cmu.sphinx.decoder.adaptation.Transform;
 import edu.cmu.sphinx.linguist.acoustic.Unit;
-
+import edu.cmu.sphinx.util.props.Configurable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
@@ -131,16 +128,10 @@ public interface Loader extends Configurable {
      * @return the left context size
      */
     public int getRightContextSize();
-    
+
     /**
      * @return the model properties
      */
     public Properties getProperties();
 
-    /**
-     * Apply the transform
-     * @param transform transform to apply to the model
-     * @param clusters transform clusters
-     */
-    public void update(Transform transform, ClusteredDensityFileData clusters);
 }

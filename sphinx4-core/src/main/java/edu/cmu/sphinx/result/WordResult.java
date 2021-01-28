@@ -46,20 +46,6 @@ public class WordResult {
     }
 
     /**
-     * Construct a WordResult using a Node object and a confidence (posterior).
-     *
-     * This does not use the posterior stored in the Node object, just its
-     * word, start and end.
-     *
-     * @param node the node to extract information from
-     */
-    public WordResult(Node node) {
-        this(node.getWord(),
-             new TimeFrame(node.getBeginTime(), node.getEndTime()), 
-             node.getViterbiScore(), node.getPosterior());
-    }
-
-    /**
      * @return total score for this WirdResult in log domain
      */
     public double getScore() {

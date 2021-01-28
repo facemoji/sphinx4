@@ -20,38 +20,10 @@ import java.util.List;
 /** A class that provides a mechanism for tokenizing a stream */
 public class ExtendedStreamTokenizer {
 
-    private String path;
     private final StreamTokenizer st;
     private final Reader reader;
     private boolean atEOF;
     private final List<String> putbackList;
-
-
-    /**
-     * Creates and returns a stream tokenizer that has been properly configured to parse sphinx3 data This
-     * ExtendedStreamTokenizer has no comment characters.
-     *
-     * @param path the source of the data
-     * @throws FileNotFoundException if a file cannot be found
-     */
-    public ExtendedStreamTokenizer(String path) throws FileNotFoundException {
-        this(path, false);
-    }
-
-
-    /**
-     * Creates and returns a stream tokenizer that has been properly configured to parse sphinx3 data This
-     * ExtendedStreamTokenizer has no comment characters.
-     *
-     * @param path             the source of the data
-     * @param eolIsSignificant if true eol is significant
-     * @throws FileNotFoundException if a file cannot be found
-     */
-    public ExtendedStreamTokenizer(String path, boolean eolIsSignificant)
-            throws FileNotFoundException {
-        this(new FileReader(path), eolIsSignificant);
-        this.path = path;
-    }
 
 
     /**
@@ -65,19 +37,6 @@ public class ExtendedStreamTokenizer {
                                    boolean eolIsSignificant) {
         this(new InputStreamReader(inputStream), eolIsSignificant);
         commentChar(commentChar);
-    }
-
-
-    /**
-     * Constructs an ExtendedStreamTokenizer from the given InputStream. This ExtendedStreamTokenizer has no comment
-     * characters.
-     *
-     * @param inputStream      the source of the data
-     * @param eolIsSignificant true if EOL is significant, false otherwise
-     */
-    public ExtendedStreamTokenizer(InputStream inputStream,
-                                   boolean eolIsSignificant) {
-        this(new InputStreamReader(inputStream), eolIsSignificant);
     }
 
 
@@ -107,17 +66,6 @@ public class ExtendedStreamTokenizer {
      */
     public void close() throws IOException {
         reader.close();
-    }
-
-
-    /**
-     * Specifies that all the characters between low and hi incluseive are whitespace characters
-     *
-     * @param low the low end of the range
-     * @param hi  the high end of the range
-     */
-    public void whitespaceChars(int low, int hi) {
-        st.whitespaceChars(low, hi);
     }
 
 
@@ -183,13 +131,12 @@ public class ExtendedStreamTokenizer {
 
 
     /**
-     * Throws an error with the line and path added
+     * Throws an error with the line added
      *
      * @param msg the annotation message
      */
     private void corrupt(String msg) throws StreamCorruptedException {
-        throw new StreamCorruptedException(
-                msg + " at line " + st.lineno() + " in file " + path);
+        throw new StreamCorruptedException(msg + " at line " + st.lineno());
     }
 
 

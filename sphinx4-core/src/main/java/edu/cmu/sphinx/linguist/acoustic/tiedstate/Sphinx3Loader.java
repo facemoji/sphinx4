@@ -15,8 +15,6 @@ import static edu.cmu.sphinx.linguist.acoustic.tiedstate.Pool.Feature.NUM_GAUSSI
 import static edu.cmu.sphinx.linguist.acoustic.tiedstate.Pool.Feature.NUM_SENONES;
 import static edu.cmu.sphinx.linguist.acoustic.tiedstate.Pool.Feature.NUM_STREAMS;
 
-import edu.cmu.sphinx.decoder.adaptation.ClusteredDensityFileData;
-import edu.cmu.sphinx.decoder.adaptation.Transform;
 import edu.cmu.sphinx.linguist.acoustic.Context;
 import edu.cmu.sphinx.linguist.acoustic.HMM;
 import edu.cmu.sphinx.linguist.acoustic.HMMPosition;
@@ -160,30 +158,29 @@ public class Sphinx3Loader implements Loader {
     // --------------------------------------
     protected Logger logger;
     private String location;
-    protected float distFloor;
+    protected float mixtureComponentScoreFloor;
     protected float mixtureWeightFloor;
     protected float varianceFloor;
     private int topGauNum;
-    protected boolean useCDUnits;
+    protected boolean useContextDependentUnits;
     private boolean loaded;
 
     public Sphinx3Loader(URL location,
-            UnitManager unitManager, float distFloor, float mixtureWeightFloor,
-            float varianceFloor, int topGauNum, boolean useCDUnits) {
+            UnitManager unitManager, float mixtureComponentScoreFloor, float mixtureWeightFloor,
+            float varianceFloor, int topGauNum, boolean useContextDependentUnits) {
 
-        init(location.getPath(), unitManager, distFloor,
-                mixtureWeightFloor, varianceFloor, topGauNum, useCDUnits,
+        init(location.getPath(), unitManager, mixtureComponentScoreFloor,
+                mixtureWeightFloor, varianceFloor, topGauNum, useContextDependentUnits,
                 Logger.getLogger(getClass().getName()));
     }
 
     public Sphinx3Loader(String location,
-            UnitManager unitManager, float distFloor, float mixtureWeightFloor,
-            float varianceFloor, int topGauNum, boolean useCDUnits)
-            throws MalformedURLException, ClassNotFoundException {
+            UnitManager unitManager, float mixtureComponentScoreFloor, float mixtureWeightFloor,
+            float varianceFloor, int topGauNum, boolean useContextDependentUnits) {
 
         init(location,
-            unitManager, distFloor, mixtureWeightFloor,
-                varianceFloor, topGauNum, useCDUnits,
+            unitManager, mixtureComponentScoreFloor, mixtureWeightFloor,
+                varianceFloor, topGauNum, useContextDependentUnits,
                 Logger.getLogger(getClass().getName()));
     }
 
@@ -194,11 +191,11 @@ public class Sphinx3Loader implements Loader {
         this.location = location;
         this.logger = logger;
         this.unitManager = unitManager;
-        this.distFloor = distFloor;
+        this.mixtureComponentScoreFloor = distFloor;
         this.mixtureWeightFloor = mixtureWeightFloor;
         this.varianceFloor = varianceFloor;
         this.topGauNum = topGauNum;
-        this.useCDUnits = useCDUnits;
+        this.useContextDependentUnits = useCDUnits;
     }
 
     public Sphinx3Loader() {
@@ -327,10 +324,10 @@ public class Sphinx3Loader implements Loader {
             //create senone to CI mapping
             getSenoneToCIPhone();
             //create tied senone pool
-            senonePool = createTiedSenonePool(distFloor, varianceFloor);
+            senonePool = createTiedSenonePool(mixtureComponentScoreFloor, varianceFloor);
         } else {
             //create regular senone poll
-            senonePool = createSenonePool(distFloor, varianceFloor);
+            senonePool = createSenonePool(mixtureComponentScoreFloor, varianceFloor);
         }
 
         // load the HMM modelDef file
@@ -338,7 +335,7 @@ public class Sphinx3Loader implements Loader {
         if (modelStream == null) {
             throw new IOException("can't find model definition");
         }
-        loadHMMPool(useCDUnits, modelStream);
+        loadHMMPool(useContextDependentUnits, modelStream);
     }
 
     public Map<String, Unit> getContextIndependentUnits() {
@@ -1261,23 +1258,4 @@ public class Sphinx3Loader implements Loader {
         return props;
     }
 
-    public void update(Transform transform, ClusteredDensityFileData clusters) {
-        for (int index = 0; index < meansPool.size(); index++) {
-            int transformClass = clusters.getClassIndex(index);
-            float[] tmean = new float[getVectorLength()[0]];
-            float[] mean = meansPool.get(index);
-
-            for (int i = 0; i < numStreams; i++) {
-                for (int l = 0; l < getVectorLength()[i]; l++) {
-                    tmean[l] = 0;
-                    for (int m = 0; m < getVectorLength()[i]; m++) {
-                        tmean[l] += transform.getAs()[transformClass][i][l][m]
-                                * mean[m];
-                    }
-                    tmean[l] += transform.getBs()[transformClass][i][l];
-                }
-                System.arraycopy(tmean, 0, mean, 0, tmean.length);
-            }
-        }
-    }
 }

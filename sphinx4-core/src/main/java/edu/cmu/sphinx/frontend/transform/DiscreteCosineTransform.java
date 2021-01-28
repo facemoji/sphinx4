@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2002-2004 Sun Microsystems, Inc.  
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2002-2004 Sun Microsystems, Inc.
  * Portions Copyright 2002-2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -28,12 +28,15 @@ import edu.cmu.sphinx.util.props.*;
  */
 public class DiscreteCosineTransform extends BaseDataProcessor {
 
+    public static final int PROP_NUMBER_FILTERS_DEFAULT = 40;
+    public static final int PROP_CEPSTRUM_LENGTH_DEFAULT = 13;
+
     /** The property for the number of filters in the filterbank. */
-    @S4Integer(defaultValue = 40)
+    @S4Integer(defaultValue = PROP_NUMBER_FILTERS_DEFAULT)
     public static final String PROP_NUMBER_FILTERS = "numberFilters";
 
     /** The property for the size of the cepstrum */
-    @S4Integer(defaultValue = 13)
+    @S4Integer(defaultValue = PROP_CEPSTRUM_LENGTH_DEFAULT)
     public static final String PROP_CEPSTRUM_LENGTH = "cepstrumLength";
 
     protected int cepstrumSize; // size of a Cepstrum
@@ -82,7 +85,7 @@ public class DiscreteCosineTransform extends BaseDataProcessor {
     }
 
     final static double LOG_FLOOR = 1e-4;
-    
+
     /**
      * Process data, creating the mel cepstrum from an input spectrum frame.
      *
@@ -155,7 +158,7 @@ public class DiscreteCosineTransform extends BaseDataProcessor {
                 cepstrum[i] /= period;
             }
         }
-        
+
         return cepstrum;
     }
 }

@@ -26,7 +26,7 @@ public class AllphoneLinguist implements Linguist {
     /** The property that defines the acoustic model to use when building the search graph */
     @S4Component(type = AcousticModel.class)
     public final static String PROP_ACOUSTIC_MODEL = "acousticModel";
-    
+
     /**
      * The property that controls phone insertion probability.
      * Default value for context independent phoneme decoding is 0.05,
@@ -34,36 +34,42 @@ public class AllphoneLinguist implements Linguist {
      */
     @S4Double(defaultValue = 0.05)
     public final static String PROP_PIP = "phoneInsertionProbability";
-    
+
     /**
      * The property that controls whether to use context dependent phones.
      * Changing it for true, don't forget to tune phone insertion probability.
      */
     @S4Boolean(defaultValue = false)
     public final static String PROP_CD = "useContextDependentPhones";
-    
+
     private AcousticModel acousticModel;
     private ArrayList<HMM> ciHMMs;
     private ArrayList<HMM> fillerHMMs;
     private ArrayList<HMM> leftContextSilHMMs;
     private HashMap<SenoneSequence, ArrayList<Unit>> senonesToUnits;
     private HashMap<Unit, HashMap<Unit, ArrayList<HMM>>> cdHMMs;
-    private float pip;
-    private boolean useCD;
-    
-    public AllphoneLinguist() {    
-        
+    private float phoneInsertionProbability;
+    private boolean useContextDependentPhones;
+    private boolean allocated = false;
+
+    public AllphoneLinguist() {
+
     }
-    
+
+    public AllphoneLinguist(AcousticModel acousticModel, float phoneInsertionProbability, boolean useContextDependentPhones) {
+        this.acousticModel = acousticModel;
+        this.phoneInsertionProbability = phoneInsertionProbability;
+        this.useContextDependentPhones = useContextDependentPhones;
+    }
+
     public void newProperties(PropertySheet ps) throws PropertyException {
         acousticModel = (AcousticModel) ps.getComponent(PROP_ACOUSTIC_MODEL);
-        pip = LogMath.getLogMath().linearToLog(ps.getFloat(PROP_PIP));
-        
-        useCD = ps.getBoolean(PROP_CD);
-        if (useCD)
-            createContextDependentSuccessors();
-        else
-            createContextIndependentSuccessors();
+        phoneInsertionProbability = LogMath.getLogMath().linearToLog(ps.getFloat(PROP_PIP));
+
+        useContextDependentPhones = ps.getBoolean(PROP_CD);
+        if (allocated) {
+            createSuccessors(useContextDependentPhones);
+        }
     }
 
     public SearchGraph getSearchGraph() {
@@ -77,27 +83,39 @@ public class AllphoneLinguist implements Linguist {
     }
 
     public void allocate() throws IOException {
+        acousticModel.allocate();
+        createSuccessors(useContextDependentPhones);
+        allocated = true;
     }
 
     public void deallocate() throws IOException {
+        acousticModel.deallocate();
+        allocated = false;
     }
-    
+
+    private void createSuccessors(boolean useCD) {
+        if (useCD)
+            createContextDependentSuccessors();
+        else
+            createContextIndependentSuccessors();
+    }
+
     public AcousticModel getAcousticModel() {
         return acousticModel;
     }
-    
+
     public float getPhoneInsertionProb() {
-        return pip;
+        return phoneInsertionProbability;
     }
-    
+
     public boolean useContextDependentPhones() {
-        return useCD;
+        return useContextDependentPhones;
     }
-    
+
     public ArrayList<HMM> getCISuccessors() {
         return ciHMMs;
     }
-    
+
     public ArrayList<HMM> getCDSuccessors(Unit lc, Unit base) {
         if (lc.isFiller())
             return leftContextSilHMMs;
@@ -112,15 +130,15 @@ public class AllphoneLinguist implements Linguist {
 
     private void createContextIndependentSuccessors() {
         Iterator<HMM> hmmIter = acousticModel.getHMMIterator();
-        ciHMMs = new ArrayList<HMM>();
-        senonesToUnits = new HashMap<SenoneSequence, ArrayList<Unit>>();
+        ciHMMs = new ArrayList<>();
+        senonesToUnits = new HashMap<>();
         while (hmmIter.hasNext()) {
             HMM hmm = hmmIter.next();
             if (!hmm.getUnit().isContextDependent()) {
                 ArrayList<Unit> sameSenonesUnits;
                 SenoneSequence senoneSeq = ((SenoneHMM)hmm).getSenoneSequence();
                 if ((sameSenonesUnits = senonesToUnits.get(senoneSeq)) == null) {
-                    sameSenonesUnits = new ArrayList<Unit>();
+                    sameSenonesUnits = new ArrayList<>();
                     senonesToUnits.put(senoneSeq, sameSenonesUnits);
                 }
                 sameSenonesUnits.add(hmm.getUnit());
@@ -128,19 +146,19 @@ public class AllphoneLinguist implements Linguist {
             }
         }
     }
-    
+
     private void createContextDependentSuccessors() {
-        cdHMMs = new HashMap<Unit, HashMap<Unit, ArrayList<HMM>>>();
-        senonesToUnits = new HashMap<SenoneSequence, ArrayList<Unit>>();
-        fillerHMMs = new ArrayList<HMM>();
-        leftContextSilHMMs = new ArrayList<HMM>();
+        cdHMMs = new HashMap<>();
+        senonesToUnits = new HashMap<>();
+        fillerHMMs = new ArrayList<>();
+        leftContextSilHMMs = new ArrayList<>();
         Iterator<HMM> hmmIter = acousticModel.getHMMIterator();
         while (hmmIter.hasNext()) {
             HMM hmm = hmmIter.next();
             ArrayList<Unit> sameSenonesUnits;
             SenoneSequence senoneSeq = ((SenoneHMM)hmm).getSenoneSequence();
             if ((sameSenonesUnits = senonesToUnits.get(senoneSeq)) == null) {
-                sameSenonesUnits = new ArrayList<Unit>();
+                sameSenonesUnits = new ArrayList<>();
                 senonesToUnits.put(senoneSeq, sameSenonesUnits);
             }
             sameSenonesUnits.add(hmm.getUnit());
@@ -156,14 +174,14 @@ public class AllphoneLinguist implements Linguist {
                     continue;
                 }
                 Unit base = hmm.getUnit().getBaseUnit();
-                HashMap<Unit, ArrayList<HMM>> lcSuccessors; 
+                HashMap<Unit, ArrayList<HMM>> lcSuccessors;
                 if ((lcSuccessors = cdHMMs.get(lc)) == null) {
-                    lcSuccessors = new HashMap<Unit, ArrayList<HMM>>();
+                    lcSuccessors = new HashMap<>();
                     cdHMMs.put(lc, lcSuccessors);
                 }
                 ArrayList<HMM> lcBaseSuccessors;
                 if ((lcBaseSuccessors = lcSuccessors.get(base)) == null) {
-                    lcBaseSuccessors = new ArrayList<HMM>();
+                    lcBaseSuccessors = new ArrayList<>();
                     lcSuccessors.put(base, lcBaseSuccessors);
                 }
                 lcBaseSuccessors.add(hmm);
@@ -171,5 +189,5 @@ public class AllphoneLinguist implements Linguist {
         }
         leftContextSilHMMs.addAll(fillerHMMs);
     }
-    
+
 }

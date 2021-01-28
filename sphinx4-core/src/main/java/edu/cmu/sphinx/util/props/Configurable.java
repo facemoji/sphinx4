@@ -1,12 +1,12 @@
 /*
- * 
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ *
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -33,7 +33,7 @@ package edu.cmu.sphinx.util.props;
  * startup. But nevertheless it is possible (and sometimes necessary) to reconfigure a component while it's running.
  * Therefore, a well behaved component should react properly to multiple <code>newProperties</code> calls. </ul>
  * <p>
- * <b>Connecting to other components</b> 
+ * <b>Connecting to other components</b>
  * <p> Components often need to interact with other components in the system.
  * One of the design goals of Sphinx-4 is that it allows for very flexible hook up of components in the system.
  * Therefore, it is *not* considered good S4 style to hardcode which subcomponents a particular subcomponent is
@@ -59,6 +59,8 @@ package edu.cmu.sphinx.util.props;
  * dynamicLexTreeLinguist itself may have a number of sub-components that will be created and configured as a result. If
  * the component doesn't exist (but was defined to mandatory) and no configuration information is found in the config
  * file for it, or if it is of the wrong type, a <code>PropertyException</code> will be thrown.
+ *
+ * todo delete this and try to make everything final
  */
 public interface Configurable {
 

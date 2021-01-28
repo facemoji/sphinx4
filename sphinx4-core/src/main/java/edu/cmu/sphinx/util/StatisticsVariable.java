@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -50,37 +50,6 @@ public class StatisticsVariable {
 
 
     /**
-     * Gets the StatisticsVariable with the given name for the given instance and context. This is a convenience
-     * function.
-     *
-     * @param instanceName the instance name of creator
-     * @param statName     the name of the StatisticsVariable
-     * @return new variable
-     */
-    static public StatisticsVariable getStatisticsVariable(
-            String instanceName, String statName) {
-        return getStatisticsVariable(instanceName + '.' + statName);
-    }
-
-
-    /** Dump all of the StatisticsVariable in the given context */
-    static public void dumpAll() {
-        System.out.println(" ========= statistics  " + "=======");
-        for (StatisticsVariable stats : pool.values()) {
-            stats.dump();
-        }
-    }
-
-
-    /** Resets all of the StatisticsVariables in the given context */
-    static public void resetAll() {
-        for (StatisticsVariable stats : pool.values()) {
-            stats.reset();
-        }
-    }
-
-
-    /**
      * Contructs a StatisticsVariable with the given name and context
      *
      * @param statName the name of this StatisticsVariable
@@ -121,30 +90,6 @@ public class StatisticsVariable {
     }
 
 
-    /** Resets this StatisticsVariable. The value is set to zero. */
-    public void reset() {
-        setValue(0.0);
-    }
-
-
-    /** Dumps this StatisticsVariable. */
-    public void dump() {
-        if (isEnabled()) {
-            System.out.println(name + ' ' + value);
-        }
-    }
-
-
-    /**
-     * Determines if this StatisticsVariable is enabled
-     *
-     * @return true if enabled
-     */
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-
     /**
      * Sets the enabled state of this StatisticsVariable
      *
@@ -155,46 +100,4 @@ public class StatisticsVariable {
     }
 
 
-    public static void main(String[] args) {
-        StatisticsVariable loops =
-                StatisticsVariable.getStatisticsVariable("main", "loops");
-        StatisticsVariable sum =
-                StatisticsVariable.getStatisticsVariable("main", "sum");
-
-        StatisticsVariable foot =
-                StatisticsVariable.getStatisticsVariable("body", "foot");
-        StatisticsVariable leg =
-                StatisticsVariable.getStatisticsVariable("body", "leg");
-        StatisticsVariable finger =
-                StatisticsVariable.getStatisticsVariable("body", "finger");
-
-        foot.setValue(2);
-        leg.setValue(2);
-        finger.setValue(10);
-
-        StatisticsVariable.dumpAll();
-        StatisticsVariable.dumpAll();
-
-        for (int i = 0; i < 1000; i++) {
-            loops.value++;
-            sum.value += i;
-        }
-
-        StatisticsVariable.dumpAll();
-
-
-        StatisticsVariable loopsAlias =
-                StatisticsVariable.getStatisticsVariable("main", "loops");
-        StatisticsVariable sumAlias =
-                StatisticsVariable.getStatisticsVariable("main", "sum");
-
-        for (int i = 0; i < 1000; i++) {
-            loopsAlias.value++;
-            sumAlias.value += i;
-        }
-
-        StatisticsVariable.dumpAll();
-        StatisticsVariable.resetAll();
-        StatisticsVariable.dumpAll();
-    }
 }

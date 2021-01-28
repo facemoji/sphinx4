@@ -11,12 +11,8 @@
  */
 package edu.cmu.sphinx.decoder;
 
-import edu.cmu.sphinx.result.Result;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
-import edu.cmu.sphinx.util.props.S4Integer;
 import edu.cmu.sphinx.decoder.search.SearchManager;
-
+import edu.cmu.sphinx.result.Result;
 import java.util.List;
 
 /** The primary decoder class */
@@ -27,15 +23,7 @@ public class Decoder extends AbstractDecoder {
     }
 
     /** The property for the number of features to recognize at once. */
-    @S4Integer(defaultValue = Integer.MAX_VALUE)
-    public final static String PROP_FEATURE_BLOCK_SIZE = "featureBlockSize";
-    private int featureBlockSize;
-
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        featureBlockSize = ps.getInt(PROP_FEATURE_BLOCK_SIZE);
-    }
+    private int featureBlockSize = Integer.MAX_VALUE;
 
     /**
      * Main decoder

@@ -12,20 +12,19 @@
 
 package edu.cmu.sphinx.decoder.search;
 
-import edu.cmu.sphinx.decoder.scorer.Scoreable;
 import edu.cmu.sphinx.decoder.scorer.ScoreProvider;
+import edu.cmu.sphinx.decoder.scorer.Scoreable;
 import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.FloatData;
-import edu.cmu.sphinx.linguist.HMMSearchState;
 import edu.cmu.sphinx.linguist.SearchState;
 import edu.cmu.sphinx.linguist.UnitSearchState;
 import edu.cmu.sphinx.linguist.WordSearchState;
 import edu.cmu.sphinx.linguist.acoustic.Unit;
 import edu.cmu.sphinx.linguist.dictionary.Pronunciation;
 import edu.cmu.sphinx.linguist.dictionary.Word;
-
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a single state in the recognition trellis. Subclasses of a token are used to represent the various
@@ -46,7 +45,7 @@ public class Token implements Scoreable {
     private float logTotalScore;
     private float logInsertionScore;
     private float logAcousticScore;
-    
+
     private SearchState searchState;
 
     private long collectTime;
@@ -66,7 +65,7 @@ public class Token implements Scoreable {
                  SearchState state,
                  float logTotalScore,
                  float logInsertionScore,
-                 float logLanguageScore,                 
+                 float logLanguageScore,
                  long collectTime) {
         this.predecessor = predecessor;
         this.searchState = state;
@@ -99,7 +98,7 @@ public class Token implements Scoreable {
      * @param logLanguageScore the log language score
      */
     public Token(Token predecessor,
-                 float logTotalScore, 
+                 float logTotalScore,
                  float logAcousticScore,
                  float logInsertionScore,
                  float logLanguageScore) {
@@ -120,7 +119,7 @@ public class Token implements Scoreable {
 
     /**
      * Collect time is different from frame number because some frames might be skipped in silence detector
-     * 
+     *
      * @return collection time in milliseconds
      */
     public long getCollectTime() {
@@ -160,14 +159,14 @@ public class Token implements Scoreable {
 
 
     /**
-     * Calculates a score against the given feature. The score can be retrieved 
+     * Calculates a score against the given feature. The score can be retrieved
      * with get score. The token will keep a reference to the scored feature-vector.
      *
      * @param feature the feature to be scored
      * @return the score for the feature
      */
     public float calculateScore(Data feature) {
-        
+
         logAcousticScore = ((ScoreProvider) searchState).getScore(feature);
 
         logTotalScore += logAcousticScore;
@@ -176,23 +175,11 @@ public class Token implements Scoreable {
 
         return logTotalScore;
     }
-    
+
     public float[] calculateComponentScore(Data feature){
     	return ((ScoreProvider) searchState).getComponentScore(feature);
     }
 
-
-    /**
-     * Normalizes a previously calculated score
-     *
-     * @param maxLogScore the score to normalize this score with
-     * @return the normalized score
-     */
-    public float normalizeScore(float maxLogScore) {
-        logTotalScore -= maxLogScore;
-        logAcousticScore -= maxLogScore;
-        return logTotalScore;
-    }
 
     /**
      * Sets the score for this token
@@ -227,7 +214,7 @@ public class Token implements Scoreable {
     }
 
 
-    /** 
+    /**
      * Returns the acoustic score for this token (in logMath log base).
      * Acoustic score is a sum of frame GMM.
      *
@@ -294,21 +281,13 @@ public class Token implements Scoreable {
             getSearchState();
     }
 
-
-    /** dumps a branch of tokens */
-    public void dumpTokenPath() {
-        dumpTokenPath(true);
-    }
-
-
     /**
      * dumps a branch of tokens
      *
-     * @param includeHMMStates if true include all sentence hmm states
      */
-    public void dumpTokenPath(boolean includeHMMStates) {
+    public void dumpTokenPath() {
         Token token = this;
-        List<Token> list = new ArrayList<Token>();
+        List<Token> list = new ArrayList<>();
 
         while (token != null) {
             list.add(token);
@@ -316,10 +295,7 @@ public class Token implements Scoreable {
         }
         for (int i = list.size() - 1; i >= 0; i--) {
             token = list.get(i);
-            if (includeHMMStates ||
-                    (!(token.getSearchState() instanceof HMMSearchState))) {
-                System.out.println("  " + token);
-            }
+            System.out.println("  " + token);
         }
         System.out.println();
     }

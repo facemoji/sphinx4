@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -30,7 +30,7 @@ package edu.cmu.sphinx.frontend.frequencywarp;
  * <p>
  * Figure 1 below shows pictorially what the other parameters mean.
  * <p>
- * <img alt="Mel filter" src="doc-files/melfilter.jpg"> <br><center><b>Figure 1: A triangular mel-filter.</b></center>
+ * <img alt="Mel filter" src="doc-files/melfilter.jpg"> <br><b>Figure 1: A triangular mel-filter.</b>
  *
  * @see MelFrequencyFilterBank
  */

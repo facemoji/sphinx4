@@ -9,8 +9,6 @@
  */
 package edu.cmu.sphinx.frontend.denoise;
 
-import java.util.Arrays;
-
 import edu.cmu.sphinx.frontend.BaseDataProcessor;
 import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataProcessingException;
@@ -20,20 +18,21 @@ import edu.cmu.sphinx.util.props.PropertyException;
 import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Double;
 import edu.cmu.sphinx.util.props.S4Integer;
+import java.util.Arrays;
 
 /**
  * The noise filter, same as implemented in sphinxbase/sphinxtrain/pocketsphinx.
- * 
+ *
  * Noise removal algorithm is inspired by the following papers Computationally
  * Efficient Speech Enchancement by Spectral Minina Tracking by G. Doblinger
- * 
+ *
  * Power-Normalized Cepstral Coefficients (PNCC) for Robust Speech Recognition
  * by C. Kim.
- * 
+ *
  * For the recent research and state of art see papers about IMRCA and A
  * Minimum-Mean-Square-Error Noise Reduction Algorithm On Mel-Frequency Cepstra
  * For Robust Speech Recognition by Dong Yu and others
- * 
+ *
  */
 public class Denoise extends BaseDataProcessor {
 
@@ -42,39 +41,41 @@ public class Denoise extends BaseDataProcessor {
     double[] floor;
     double[] peak;
 
-    @S4Double(defaultValue = 0.7)
+    public static final double LAMBDA_POWER_DEFAULT = 0.7;
+    public static final double LAMBDA_A_DEFAULT = 0.995;
+    public static final double LAMBDA_B_DEFAULT = 0.5;
+    public static final double LAMBDA_T_DEFAULT = 0.85;
+    public static final double MU_T_DEFAULT = 0.2;
+    public static final double MAX_GAIN_DEFAULT = 20.0;
+    public static final int SMOOTH_WINDOW_DEFAULT = 4;
+
+    @S4Double(defaultValue = LAMBDA_POWER_DEFAULT)
     public final static String LAMBDA_POWER = "lambdaPower";
     double lambdaPower;
-
-    @S4Double(defaultValue = 0.995)
+    @S4Double(defaultValue = LAMBDA_A_DEFAULT)
     public final static String LAMBDA_A = "lambdaA";
     double lambdaA;
-
-    @S4Double(defaultValue = 0.5)
+    @S4Double(defaultValue = LAMBDA_B_DEFAULT)
     public final static String LAMBDA_B = "lambdaB";
     double lambdaB;
-
-    @S4Double(defaultValue = 0.85)
+    @S4Double(defaultValue = LAMBDA_T_DEFAULT)
     public final static String LAMBDA_T = "lambdaT";
     double lambdaT;
-
-    @S4Double(defaultValue = 0.2)
+    @S4Double(defaultValue = MU_T_DEFAULT)
     public final static String MU_T = "muT";
     double muT;
-
-    @S4Double(defaultValue = 20.0)
+    @S4Double(defaultValue = MAX_GAIN_DEFAULT)
     public final static String MAX_GAIN = "maxGain";
     double maxGain;
-
-    @S4Integer(defaultValue = 4)
+    @S4Integer(defaultValue = SMOOTH_WINDOW_DEFAULT)
     public final static String SMOOTH_WINDOW = "smoothWindow";
     int smoothWindow;
 
     final static double EPS = 1e-10;
 
     public Denoise(double lambdaPower, double lambdaA, double lambdaB,
-            double lambdaT, double muT,
-            double maxGain, int smoothWindow) {
+        double lambdaT, double muT,
+        double maxGain, int smoothWindow) {
         this.lambdaPower = lambdaPower;
         this.lambdaA = lambdaA;
         this.lambdaB = lambdaB;
@@ -84,12 +85,17 @@ public class Denoise extends BaseDataProcessor {
         this.smoothWindow = smoothWindow;
     }
 
-    public Denoise() {
+    private Denoise() {
+        this(LAMBDA_POWER_DEFAULT, LAMBDA_A_DEFAULT, LAMBDA_B_DEFAULT, LAMBDA_T_DEFAULT, MU_T_DEFAULT, MAX_GAIN_DEFAULT, SMOOTH_WINDOW_DEFAULT);
+    }
+
+    public static Denoise withDefaults() {
+        return new Denoise();
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util
      * .props.PropertySheet)

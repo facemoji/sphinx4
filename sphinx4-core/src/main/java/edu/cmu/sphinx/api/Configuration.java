@@ -16,11 +16,7 @@ package edu.cmu.sphinx.api;
  * Represents common configuration options.
  *
  * This configuration is used by high-level recognition classes.
- *
- * @see SpeechAligner
- * @see LiveSpeechRecognizer
- * @see StreamSpeechRecognizer
- */
+ * */
 public class Configuration {
 
     private String acousticModelPath;

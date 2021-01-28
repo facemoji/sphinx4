@@ -1,7 +1,5 @@
 package edu.cmu.sphinx.util.props;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
@@ -31,43 +29,6 @@ public class ConfigurationManager implements Cloneable {
      * is created during runtime.
      */
     public ConfigurationManager() {
-    }
-
-
-    /**
-     * Creates a new configuration manager. Initial properties are loaded from the given URL. No need to keep the notion
-     * of 'context' around anymore we will just pass around this property manager.
-     *
-     * @param configFileName The location of the configuration file.
-     */
-    public ConfigurationManager(String configFileName) throws PropertyException {
-        this(ConfigurationManagerUtils.getURL(new File(configFileName)));
-    }
-
-
-    /**
-     * Creates a new configuration manager. Initial properties are loaded from the given URL. No need to keep the notion
-     * of 'context' around anymore we will just pass around this property manager.
-     *
-     * @param url The location of the configuration file.
-     */
-    public ConfigurationManager(URL url) throws PropertyException {
-        configURL = url;
-
-        try {
-            rawPropertyMap = new SaxLoader(url, globalProperties).load();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        ConfigurationManagerUtils.applySystemProperties(rawPropertyMap, globalProperties);
-        ConfigurationManagerUtils.configureLogger(this);
-
-        // we can't configure the configuration manager with itself so we
-        // do some of these configure items manually.
-        String showCreations = globalProperties.get("showCreations");
-        if (showCreations != null)
-            this.showCreations = "true".equals(showCreations);
     }
 
 
@@ -245,27 +206,6 @@ public class ConfigurationManager implements Cloneable {
     }
 
 
-    /**
-     * Adds an already instantiated <code>Configurable</code> to this configuration manager.
-     *
-     * @param configurable A configurable to add
-     * @param name The desired lookup-instanceName of the configurable
-     */
-    public void addConfigurable(Configurable configurable, String name) {
-        if (symbolTable.containsKey(name))
-            throw new IllegalArgumentException("tried to override existing component name");
-
-        RawPropertyData dummyRPD = new RawPropertyData(name, configurable.getClass().getName());
-
-        PropertySheet ps = new PropertySheet(configurable, name, dummyRPD, this);
-        symbolTable.put(name, ps);
-        rawPropertyMap.put(name, dummyRPD);
-
-        for (ConfigurationChangeListener changeListener : changeListeners)
-            changeListener.componentAdded(this, ps);
-    }
-
-
     public void renameConfigurable(String oldName, String newName) {
         PropertySheet ps = getPropertySheet(oldName);
 
@@ -285,8 +225,8 @@ public class ConfigurationManager implements Cloneable {
     }
 
 
-    /** Removes a configurable from this configuration manager. 
-     * @param name a name to remove 
+    /** Removes a configurable from this configuration manager.
+     * @param name a name to remove
      */
     public void removeConfigurable(String name) {
         assert getComponentNames().contains(name);
@@ -416,28 +356,6 @@ public class ConfigurationManager implements Cloneable {
             propertyName = globalProperties.get(ConfigurationManagerUtils.stripGlobalSymbol(propertyName)).toString();
 
         return propertyName;
-    }
-
-
-    /** Adds a new listener for configuration change events. 
-     * @param l listener to add
-     **/
-    public void addConfigurationChangeListener(ConfigurationChangeListener l) {
-        if (l == null)
-            return;
-
-        changeListeners.add(l);
-    }
-
-
-    /** Removes a listener for configuration change events. 
-     * @param l listener to remove
-     **/
-    public void removeConfigurationChangeListener(ConfigurationChangeListener l) {
-        if (l == null)
-            return;
-
-        changeListeners.remove(l);
     }
 
 

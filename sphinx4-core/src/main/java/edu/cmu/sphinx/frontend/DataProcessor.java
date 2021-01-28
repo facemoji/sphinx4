@@ -1,11 +1,11 @@
 /*
- * Copyright 2004 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ * Copyright 2004 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  * @see FrontEnd
@@ -13,6 +13,7 @@
 package edu.cmu.sphinx.frontend;
 
 import edu.cmu.sphinx.util.props.Configurable;
+import java.util.List;
 
 /**
  * A processor that performs a signal processing function.
@@ -20,19 +21,26 @@ import edu.cmu.sphinx.util.props.Configurable;
  * Since a DataProcessor usually belongs to a particular front end pipeline,
  * you can name the pipeline it belongs to in the {@link #initialize()
  * initialize} method. (Note, however, that it is not always the case that a
- * DataProcessor belongs to a particular pipeline. For example, the {@link
- * edu.cmu.sphinx.frontend.util.Microphone Microphone}class is a DataProcessor,
- * but it usually does not belong to any particular pipeline.  
- * <p> 
+ * DataProcessor belongs to a particular pipeline. For example,
+ * the Microphone class is a DataProcessor,
+ * but it usually does not belong to any particular pipeline.
+ * <p>
  * Each
  * DataProcessor usually have a predecessor as well. This is the previous
  * DataProcessor in the pipeline. Again, not all DataProcessors have
- * predecessors.  
+ * predecessors.
  * <p>
  * Calling {@link #getData() getData}will return the
  * processed Data object.
  */
 public interface DataProcessor extends Configurable {
+
+    static List<DataProcessor> chainProcessors(List<DataProcessor> dataProcessors) {
+        for (int i = 1; i < dataProcessors.size(); i++) {
+            dataProcessors.get(i).setPredecessor(dataProcessors.get(i - 1));
+        }
+        return dataProcessors;
+    }
 
     /**
      * Initializes this DataProcessor.

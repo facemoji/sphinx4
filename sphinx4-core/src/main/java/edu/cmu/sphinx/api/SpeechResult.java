@@ -11,12 +11,10 @@
 
 package edu.cmu.sphinx.api;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
 import edu.cmu.sphinx.recognizer.Recognizer;
-import edu.cmu.sphinx.result.*;
+import edu.cmu.sphinx.result.Result;
+import edu.cmu.sphinx.result.WordResult;
+import java.util.List;
 
 
 /**
@@ -25,7 +23,6 @@ import edu.cmu.sphinx.result.*;
 public final class SpeechResult {
 
     private final Result result;
-    private final Lattice lattice;
 
     /**
      * Constructs recognition result based on {@link Result} object.
@@ -34,12 +31,6 @@ public final class SpeechResult {
      */
     public SpeechResult(Result result) {
         this.result = result;
-        if (result.toCreateLattice()) {
-            lattice = new Lattice(result);
-            new LatticeOptimizer(lattice).optimize();
-            lattice.computeNodePosteriors(1.0f);
-        } else
-            lattice = null;
     }
 
     /**
@@ -49,7 +40,7 @@ public final class SpeechResult {
      * @return words that form the result
      */
     public List<WordResult> getWords() {
-        return lattice != null ? lattice.getWordResultPath() : result.getTimedBestResult(false);
+        return result.getTimedBestResult(false);
     }
 
     /**
@@ -60,29 +51,8 @@ public final class SpeechResult {
     }
 
     /**
-     * Return N best hypothesis.
-     *
-     * @param  n number of hypothesis to return
-     * @return   {@link Collection} of several best hypothesis
-     */
-    public Collection<String> getNbest(int n) {
-        if (lattice == null)
-            return new HashSet<String>();
-        return new Nbest(lattice).getNbest(n);
-    }
-
-    /**
-     * Returns lattice for the recognition result.
-     *
-     * @return lattice object
-     */
-    public Lattice getLattice() {
-        return lattice;
-    }
-    
-    /**
      * Return Result object of current SpeechResult
-     * 
+     *
      * @return Result object stored in this.result
      */
     public Result getResult() {

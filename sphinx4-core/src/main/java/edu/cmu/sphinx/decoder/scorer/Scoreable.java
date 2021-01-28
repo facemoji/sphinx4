@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -26,7 +26,7 @@ public interface Scoreable extends Data {
      * <p>Note: since a higher score results in a lower natural order,
      * statements such as {@code Collections.min(list, Scoreable.COMPARATOR)}
      * actually return the Scoreable with the <b>highest</b> score,
-     * in contrast to the natural meaning of the word "min".   
+     * in contrast to the natural meaning of the word "min".
      */
     Comparator<Scoreable> COMPARATOR = new Comparator<Scoreable>() {
         public int compare(Scoreable t1, Scoreable t2) {
@@ -56,13 +56,5 @@ public interface Scoreable extends Data {
      */
     public float getScore();
 
-
-    /**
-     * Normalizes a previously calculated score
-     *
-     * @param maxScore maximum score to use for norm
-     * @return the normalized score
-     */
-    public float normalizeScore(float maxScore);
 
 }

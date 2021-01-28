@@ -48,5 +48,5 @@ subprojects() {
         from sourceSets.main.allSource
     }
 
-    artifacts.archives packageSources, javadocJar
+    artifacts.archives packageSources /*, javadocJar*/
 }

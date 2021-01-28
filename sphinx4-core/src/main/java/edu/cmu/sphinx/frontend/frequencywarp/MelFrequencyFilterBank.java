@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -27,7 +27,7 @@ import edu.cmu.sphinx.util.props.*;
  * perceptual effect at different frequency bands. Additionally, the edges are placed so that they coincide with the
  * center frequencies in adjacent filters. Pictorially, the filter bank looks like:
  * <p>
- * <img alt="Filterbank" src="doc-files/melfilterbank.jpg"> <br> <center><b>Figure 1: A Mel-filter bank. </b> </center>
+ * <img alt="Filterbank" src="doc-files/melfilterbank.jpg"> <br> <b>Figure 1: A Mel-filter bank. </b>
  * <p>
  * As you might notice in the above figure, the distance at the base from the center to the left edge is different from
  * the center to the right edge. Since the center frequencies follow the mel-frequency scale, which is a non-linear
@@ -49,11 +49,14 @@ import edu.cmu.sphinx.util.props.*;
  * is not much information above 6800Hz that can be used for improving separation between models. Particularly for very
  * noisy channels, maximum frequency of around 5000Hz may help cut off the noise.
  * <p>
- * Typical values for the constants defining the filter bank are: <table summary="Filterbank Values" width="80%" border="1"> <tr> <td><b>Sample rate
- * (Hz) </b></td> <td><b>16000 </b></td> <td><b>11025 </b></td> <td><b>8000 </b></td> </tr> <tr> <td>{@link
- * #PROP_NUMBER_FILTERS numberFilters}</td> <td>40</td> <td>36</td> <td>31</td> </tr> <tr> <td>{@link #PROP_MIN_FREQ
- * minimumFrequency}(Hz)</td> <td>130</td> <td>130</td> <td>200</td> </tr> <tr> <td>{@link #PROP_MAX_FREQ
- * maximumFrequency}(Hz)</td> <td>6800</td> <td>5400</td> <td>3500</td> </tr> </table>
+ * Typical values for the constants defining the filter bank are:
+ * <table border="1">
+ * <caption>Filterbank Values</caption>
+ * <tr> <td><b>Sample rate (Hz) </b></td> <td><b>16000 </b></td> <td><b>11025 </b></td> <td><b>8000 </b></td> </tr>
+ * <tr> <td>{@link #PROP_NUMBER_FILTERS numberFilters}</td> <td>40</td> <td>36</td> <td>31</td> </tr>
+ * <tr> <td>{@link #PROP_MIN_FREQ minimumFrequency}(Hz)</td> <td>130</td> <td>130</td> <td>200</td> </tr>
+ * <tr> <td>{@link #PROP_MAX_FREQ maximumFrequency}(Hz)</td> <td>6800</td> <td>5400</td> <td>3500</td> </tr>
+ * </table>
  * <p>
  * Davis and Mermelstein showed that Mel-frequency cepstral coefficients present robust characteristics that are good
  * for speech recognition. For details, see Davis and Mermelstein, <i>Comparison of Parametric Representations for
@@ -110,18 +113,6 @@ public class MelFrequencyFilterBank extends BaseDataProcessor {
         numberFilters = ps.getInt(PROP_NUMBER_FILTERS);
     }
 
-
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
-    */
-    @Override
-    public void initialize() {
-        super.initialize();
-    }
-
-
     /**
      * Compute mel frequency from linear frequency.
      * <p>
@@ -157,8 +148,7 @@ public class MelFrequencyFilterBank extends BaseDataProcessor {
      * @return the closest frequency bin
      * @throws IllegalArgumentException
      */
-    private double setToNearestFrequencyBin(double inFreq, double stepFreq)
-            throws IllegalArgumentException {
+    private double setToNearestFrequencyBin(double inFreq, double stepFreq) throws IllegalArgumentException {
         if (stepFreq == 0) {
             throw new IllegalArgumentException("stepFreq is zero");
         }

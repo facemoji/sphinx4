@@ -2,9 +2,6 @@
 
 <config>
 
-    <component name="microphone"
-               type="edu.cmu.sphinx.frontend.util.Microphone"/>
-
     <component name="frontEnd" type="edu.cmu.sphinx.frontend.FrontEnd">
         <propertylist name="pipeline">
             <item>streamDataSource</item>
@@ -37,8 +34,8 @@
             <item>cwindower</item>
             <item>cfft</item>
             <item>melFilterBank</item>
-            
-            <!--item>dct</item-->            
+
+            <!--item>dct</item-->
             <!--item>dataDumper</item-->
             <!--item>liveCMN</item>
             <item>featureExtraction</item-->
@@ -48,41 +45,38 @@
     <component name="cstreamDataSource" type="edu.cmu.sphinx.frontend.util.StreamDataSource">
         <property name="sampleRate" value="8000"/>
     </component>
-   
+
 
     <component name="cpreemphasizer"
 		type="edu.cmu.sphinx.frontend.filter.Preemphasizer"/>
     <component name="dither"
 		type="edu.cmu.sphinx.frontend.filter.Dither"/>
 
-    
-    <component name="cwindower" 
+
+    <component name="cwindower"
 	type="edu.cmu.sphinx.frontend.window.RaisedCosineWindower"/>
-    
-    <component name="cfft" 
+
+    <component name="cfft"
         type="edu.cmu.sphinx.frontend.transform.DiscreteFourierTransform"/>
-    
-    <component name="melFilterBank" 
+
+    <component name="melFilterBank"
         type="edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank">
           <property name="numberFilters" value="31"/>
           <property name="minimumFrequency" value="200"/>
           <property name="maximumFrequency" value="3500"/>
     </component>
-    
-    <component name="dct" 
+
+    <component name="dct"
             type="edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform"/>
 
 
-    <component name="wavWriter" 
-                type="edu.cmu.sphinx.frontend.util.WavWriter"/>
-
-    <component name="dataDumper" 
+    <component name="dataDumper"
                 type="edu.cmu.sphinx.frontend.util.DataDumper"/>
-    
-    <component name="liveCMN" 
+
+    <component name="liveCMN"
                 type="edu.cmu.sphinx.frontend.feature.LiveCMN"/>
-    
-    <component name="featureExtraction" 
+
+    <component name="featureExtraction"
 		type="edu.cmu.sphinx.frontend.feature.DeltasFeatureExtractor"/>
 
 </config>

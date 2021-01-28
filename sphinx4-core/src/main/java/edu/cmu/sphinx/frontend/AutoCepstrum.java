@@ -9,18 +9,20 @@ package edu.cmu.sphinx.frontend;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import edu.cmu.sphinx.frontend.denoise.Denoise;
 import edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank;
-import edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank2;
-import edu.cmu.sphinx.frontend.transform.*;
-import edu.cmu.sphinx.linguist.acoustic.tiedstate.KaldiLoader;
+import edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform;
+import edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform2;
+import edu.cmu.sphinx.frontend.transform.Lifter;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.Loader;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.util.props.PropertyException;
+import edu.cmu.sphinx.util.props.PropertySheet;
+import edu.cmu.sphinx.util.props.S4Component;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 
 
 /**
@@ -36,7 +38,37 @@ import edu.cmu.sphinx.util.props.*;
  * MelFrequencyFilterBank parameters (numberFilters, minimumFrequency and
  * maximumFrequency) are auto-configured based on the values found in
  * feat.params.
- * 
+ *<br>
+ *   Creates a chain of following {@link DataProcessor DataProcessors}
+ *
+ * <h3>filterBank</h3>
+ * The filter bank which will be used for creating the cepstrum. The filter
+ * bank is always inserted in the pipeline and its minimum frequency,
+ * maximum frequency and number of filters are configured based on the
+ * "lowerf", "upperf" and "nfilt" values in the feat.params file of the
+ * target acoustic model.
+ *
+ * <h3>Denoise</h3>
+ * The denoise component which could be used for creating the cepstrum. The
+ * denoise component is inserted in the pipeline only if
+ * "-remove_noise yes" is specified in the feat.params file of the target
+ * acoustic model.
+ *
+ * <h3>DCT</h3>
+ * The property specifying the DCT which will be used for creating the
+ * cepstrum. If "-transform legacy" is specified in the feat.params file of
+ * the target acoustic model or if the "-transform" parameter does not
+ * appear in this file at all, the legacy DCT component is inserted in the
+ * pipeline. If "-transform dct" is specified in the feat.params file of
+ * the target acoustic model, then the current DCT component is inserted in
+ * the pipeline.
+ *
+ * <h3>Lifter</h3>
+ * The lifter component which could be used for creating the cepstrum. The
+ * lifter component is inserted in the pipeline only if
+ * "-lifter &lt;lifterValue&gt;" is specified in the feat.params file of the
+ * target acoustic model.
+ *
  * @author Horia Cucu
  */
 public class AutoCepstrum extends BaseDataProcessor {
@@ -53,46 +85,10 @@ public class AutoCepstrum extends BaseDataProcessor {
     protected Loader loader;
 
     /**
-     * The filter bank which will be used for creating the cepstrum. The filter
-     * bank is always inserted in the pipeline and its minimum frequency,
-     * maximum frequency and number of filters are configured based on the
-     * "lowerf", "upperf" and "nfilt" values in the feat.params file of the
-     * target acoustic model.
-     */
-    protected BaseDataProcessor filterBank;
-
-    /**
-     * The denoise component which could be used for creating the cepstrum. The
-     * denoise component is inserted in the pipeline only if
-     * "-remove_noise yes" is specified in the feat.params file of the target
-     * acoustic model.
-     */
-    protected Denoise denoise;
-
-    /**
-     * The property specifying the DCT which will be used for creating the
-     * cepstrum. If "-transform legacy" is specified in the feat.params file of
-     * the target acoustic model or if the "-transform" parameter does not
-     * appear in this file at all, the legacy DCT component is inserted in the
-     * pipeline. If "-transform dct" is specified in the feat.params file of
-     * the target acoustic model, then the current DCT component is inserted in
-     * the pipeline.
-     */
-    protected DiscreteCosineTransform dct;
-
-    /**
-     * The lifter component which could be used for creating the cepstrum. The
-     * lifter component is inserted in the pipeline only if
-     * "-lifter &lt;lifterValue&gt;" is specified in the feat.params file of the
-     * target acoustic model.
-     */
-    protected Lifter lifter;
-
-    /**
      * The list of <code>DataProcessor</code>s which were auto-configured for
      * this Cepstrum component.
      */
-    protected List<DataProcessor> selectedDataProcessors;
+    protected List<DataProcessor> selectedDataProcessors = Collections.emptyList();
 
     public AutoCepstrum(Loader loader) throws IOException {
         initLogger();
@@ -123,96 +119,30 @@ public class AutoCepstrum extends BaseDataProcessor {
     }
 
     private void initDataProcessors() {
-        try {
-            Properties featParams = loader.getProperties();
-            selectedDataProcessors = new ArrayList<DataProcessor>();
+        Properties featParams = loader.getProperties();
+        List<DataProcessor> dataProcessors = new ArrayList<>();
 
-            double lowFreq = parseDouble(featParams.getProperty("-lowerf"));
-            double hiFreq = parseDouble(featParams.getProperty("-upperf"));
-            int numFilter = parseInt(featParams.getProperty("-nfilt"));
+        double lowFreq = parseDouble(featParams.getProperty("-lowerf"));
+        double hiFreq = parseDouble(featParams.getProperty("-upperf"));
+        int numFilter = parseInt(featParams.getProperty("-nfilt"));
 
-            // TODO: should not be there, but for now me must preserve
-            // backward compatibility with the legacy code.
-            if (loader instanceof KaldiLoader)
-                filterBank = new MelFrequencyFilterBank2(lowFreq,
-                                                         hiFreq,
-                                                         numFilter);
-            else
-                filterBank = new MelFrequencyFilterBank(lowFreq,
-                                                        hiFreq,
-                                                        numFilter);
+        dataProcessors.add(new MelFrequencyFilterBank(lowFreq, hiFreq, numFilter));
 
-            selectedDataProcessors.add(filterBank);
-
-            if ((featParams.get("-remove_noise") == null)
-                    || (featParams.get("-remove_noise").equals("yes"))) {
-                denoise = new Denoise(Denoise.class.getField("LAMBDA_POWER")
-                                              .getAnnotation(S4Double.class)
-                                              .defaultValue(),
-                                      Denoise.class.getField("LAMBDA_A")
-                                              .getAnnotation(S4Double.class)
-                                              .defaultValue(),
-                                      Denoise.class.getField("LAMBDA_B")
-                                              .getAnnotation(S4Double.class)
-                                              .defaultValue(),
-                                      Denoise.class.getField("LAMBDA_T")
-                                              .getAnnotation(S4Double.class)
-                                              .defaultValue(),
-                                      Denoise.class.getField("MU_T")
-                                              .getAnnotation(S4Double.class)
-                                              .defaultValue(),
-                                      Denoise.class.getField("MAX_GAIN")
-                                              .getAnnotation(S4Double.class)
-                                              .defaultValue(),
-                                      Denoise.class.getField("SMOOTH_WINDOW")
-                                              .getAnnotation(S4Integer.class)
-                                              .defaultValue());
-                // denoise.newProperties();
-                denoise.setPredecessor(selectedDataProcessors
-                        .get(selectedDataProcessors.size() - 1));
-                selectedDataProcessors.add(denoise);
-            }
-
-            if ((featParams.get("-transform") != null)
-                    && (featParams.get("-transform").equals("dct"))) {
-                dct = new DiscreteCosineTransform2(
-                                                   numFilter,
-                                                   DiscreteCosineTransform.class
-                                                           .getField("PROP_CEPSTRUM_LENGTH")
-                                                           .getAnnotation(S4Integer.class)
-                                                           .defaultValue());
-            } else if ((featParams.get("-transform") != null)
-                    && (featParams.get("-transform").equals("kaldi")))
-            {
-                dct = new KaldiDiscreteCosineTransform(
-                                                       numFilter,
-                                                       DiscreteCosineTransform.class
-                                                               .getField("PROP_CEPSTRUM_LENGTH")
-                                                               .getAnnotation(S4Integer.class)
-                                                               .defaultValue());
-            } else {
-                dct = new DiscreteCosineTransform(numFilter,
-                                                  DiscreteCosineTransform.class
-                                                          .getField("PROP_CEPSTRUM_LENGTH")
-                                                          .getAnnotation(S4Integer.class)
-                                                          .defaultValue());
-            }
-            dct.setPredecessor(selectedDataProcessors
-                    .get(selectedDataProcessors.size() - 1));
-            selectedDataProcessors.add(dct);
-
-            if (featParams.get("-lifter") != null) {
-                lifter = new Lifter(Integer.parseInt((String) featParams
-                        .get("-lifter")));
-                lifter.setPredecessor(selectedDataProcessors
-                        .get(selectedDataProcessors.size() - 1));
-                selectedDataProcessors.add(lifter);
-            }
-            logger.info("Cepstrum component auto-configured as follows: "
-                    + toString());
-        } catch (NoSuchFieldException exc) {
-            throw new RuntimeException(exc);
+        if (featParams.get("-remove_noise") == null || featParams.get("-remove_noise").equals("yes")) {
+            dataProcessors.add(Denoise.withDefaults());
         }
+
+        final boolean dctEnabled = "dct".equals(featParams.get("-transform"));
+        DiscreteCosineTransform dct = dctEnabled
+            ? new DiscreteCosineTransform2(numFilter, DiscreteCosineTransform.PROP_CEPSTRUM_LENGTH_DEFAULT)
+            : new DiscreteCosineTransform(numFilter, DiscreteCosineTransform.PROP_CEPSTRUM_LENGTH_DEFAULT);
+        dataProcessors.add(dct);
+
+        if (featParams.get("-lifter") != null) {
+            dataProcessors.add(new Lifter(Integer.parseInt(featParams.getProperty("-lifter"))));
+        }
+        selectedDataProcessors = DataProcessor.chainProcessors(dataProcessors);
+        logger.info(() -> "Cepstrum component auto-configured as follows: " + toString());
     }
 
     /*
@@ -232,7 +162,7 @@ public class AutoCepstrum extends BaseDataProcessor {
     /**
      * Returns the processed Data output, basically calls
      * <code>getData()</code> on the last processor.
-     * 
+     *
      * @return a Data object that has been processed by the cepstrum
      * @throws DataProcessingException if a data processor error occurs
      */
@@ -243,22 +173,27 @@ public class AutoCepstrum extends BaseDataProcessor {
         return dp.getData();
     }
 
+    @Override
+    public DataProcessor getPredecessor() {
+        return selectedDataProcessors.get(0).getPredecessor();
+    }
+
     /**
      * Sets the predecessor for this DataProcessor. The predecessor is actually
      * the spectrum builder.
-     * 
+     *
      * @param predecessor the predecessor of this DataProcessor
      */
     @Override
     public void setPredecessor(DataProcessor predecessor) {
-        filterBank.setPredecessor(predecessor);
+        selectedDataProcessors.get(0).setPredecessor(predecessor);
     }
 
     /**
      * Returns a description of this Cepstrum component in the format:
      * &lt;cepstrum name&gt; {&lt;DataProcessor1&gt;, &lt;DataProcessor2&gt; ...
      * &lt;DataProcessorN&gt;}
-     * 
+     *
      * @return a description of this Cepstrum
      */
     @Override

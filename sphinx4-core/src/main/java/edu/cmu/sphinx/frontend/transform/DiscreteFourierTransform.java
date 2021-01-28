@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2002-2004 Sun Microsystems, Inc.  
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2002-2004 Sun Microsystems, Inc.
  * Portions Copyright 2002-2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -17,7 +17,10 @@ import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DoubleData;
 import edu.cmu.sphinx.util.Complex;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.util.props.PropertyException;
+import edu.cmu.sphinx.util.props.PropertySheet;
+import edu.cmu.sphinx.util.props.S4Boolean;
+import edu.cmu.sphinx.util.props.S4Integer;
 
 
 /**
@@ -74,7 +77,10 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
     private Complex weightFftTimesFrom2;
     private Complex tempComplex;
 
-    public DiscreteFourierTransform( int numberFftPoints, boolean invert ) {
+    /**
+     * @param numberFftPoints Set to -1 for auto-initialization. Sorry for the inconvenience.
+     */
+    public DiscreteFourierTransform(int numberFftPoints, boolean invert) {
         initLogger();
         this.numberFftPoints = numberFftPoints;
         this.isNumberFftPointsSet = (numberFftPoints != -1);
@@ -84,7 +90,7 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
     public DiscreteFourierTransform() {
     }
 
-   /*
+    /*
     * (non-Javadoc)
     *
     * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)

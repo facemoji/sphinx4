@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -26,8 +26,8 @@ import edu.cmu.sphinx.util.props.S4Integer;
 
 /**
  * Subtracts the mean of all the input so far from the Data objects.
- * 
- * Unlike the {@link BatchCMN}, it does not read in the entire stream of Data
+ *
+ * Unlike the (deleted) BatchCMN, it does not read in the entire stream of Data
  * objects before it calculates the mean. It estimates the mean from already
  * seen data and subtracts the mean from the Data objects on the fly. Therefore,
  * there is no delay introduced by LiveCMN in general. The only real issue is an
@@ -45,22 +45,21 @@ import edu.cmu.sphinx.util.props.S4Integer;
  * {@link #PROP_CMN_SHIFT_WINDOW} cepstra. This mean is estimated by dividing
  * the sum of all input cepstrum so far. After obtaining the mean, the sum is
  * exponentially decayed by multiplying it by the ratio:
- * 
+ *
  * <pre>
  * cmnWindow/(cmnWindow + number of frames since the last recalculation)
  * </pre>
- * 
- * @see BatchCMN
+ *
  */
 public class LiveCMN extends BaseDataProcessor {
-    
+
     private DecimalFormat formatter = new DecimalFormat("0.00;-0.00", new DecimalFormatSymbols(Locale.US));;
 
     /** The property for the live CMN initial window size. */
     @S4Integer(defaultValue = 200)
     public static final String PROP_INITIAL_CMN_WINDOW = "initialCmnWindow";
     private int initialCmnWindow;
-    
+
     /** The property for the live CMN window size. */
     @S4Integer(defaultValue = 300)
     public static final String PROP_CMN_WINDOW = "cmnWindow";
@@ -80,7 +79,7 @@ public class LiveCMN extends BaseDataProcessor {
 
     List<Data> initialList = new LinkedList<Data>();
 
-    public LiveCMN(double initialMean, int cmnWindow, int cmnShiftWindow, int initialCmnWindow) {
+    public LiveCMN(int cmnWindow, int cmnShiftWindow, int initialCmnWindow) {
         initLogger();
         this.cmnWindow = cmnWindow;
         this.cmnShiftWindow = cmnShiftWindow;
@@ -115,7 +114,7 @@ public class LiveCMN extends BaseDataProcessor {
         for (Data data : initialList) {
             if (!(data instanceof DoubleData))
                 continue;
-        
+
             double[] cepstrum = ((DoubleData) data).getValues();
 
             // Initialize arrays if needed
@@ -147,7 +146,7 @@ public class LiveCMN extends BaseDataProcessor {
     /**
      * Returns the next Data object, which is a normalized Data produced by this
      * class. Signals are returned unmodified.
-     * 
+     *
      * @return the next available Data object, returns null if no Data object is
      *         available
      * @throws DataProcessingException
@@ -184,7 +183,7 @@ public class LiveCMN extends BaseDataProcessor {
     /**
      * Normalizes the given Data with using the currentMean array. Updates the
      * sum array with the given Data.
-     * 
+     *
      * @param data
      *            the Data object to normalize
      */
@@ -207,14 +206,14 @@ public class LiveCMN extends BaseDataProcessor {
             }
             numberFrame++;
         }
-        
+
         // Subtract current mean
         for (int j = 0; j < cepstrum.length; j++) {
             cepstrum[j] -= currentMean[j];
         }
 
         if (numberFrame > cmnShiftWindow) {
-            
+
             StringBuilder cmn = new StringBuilder();
             // calculate the mean first
             for (int i = 0; i < currentMean.length; i++) {
@@ -222,7 +221,7 @@ public class LiveCMN extends BaseDataProcessor {
                 cmn.append(' ');
             }
             logger.info(cmn.toString());
-            
+
             updateMeanSumBuffers();
         }
     }
@@ -250,7 +249,7 @@ public class LiveCMN extends BaseDataProcessor {
 
     /**
      * Multiplies each element of the given array by the multiplier.
-     * 
+     *
      * @param array
      *            the array to multiply
      * @param multiplier

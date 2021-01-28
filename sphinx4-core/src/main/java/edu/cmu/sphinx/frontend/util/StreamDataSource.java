@@ -11,16 +11,25 @@
  */
 package edu.cmu.sphinx.frontend.util;
 
+import edu.cmu.sphinx.api.ByteInputStream;
+import edu.cmu.sphinx.api.InputStreams;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataEndSignal;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DataStartSignal;
+import edu.cmu.sphinx.frontend.DoubleData;
+import edu.cmu.sphinx.util.TimeFrame;
+import edu.cmu.sphinx.util.props.PropertyException;
+import edu.cmu.sphinx.util.props.PropertySheet;
+import edu.cmu.sphinx.util.props.S4Boolean;
+import edu.cmu.sphinx.util.props.S4Integer;
 import java.io.IOException;
 import java.io.InputStream;
 
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.util.TimeFrame;
-import edu.cmu.sphinx.util.props.*;
-
 /**
  * A StreamDataSource converts data from an InputStream into Data objects. One
- * would call {@link #setInputStream(InputStream,TimeFrame) setInputStream} to set
+ * would call {@link #setInputStream(ByteInputStream, TimeFrame) setInputStream} to set
  * the input stream, and call {@link #getData} to obtain the Data object. The
  * InputStream can be an arbitrary stream, for example a data from the network
  * or from a pipe.
@@ -60,7 +69,7 @@ public class StreamDataSource extends BaseDataProcessor {
     @S4Boolean(defaultValue = true)
     public static final String PROP_SIGNED_DATA = "signedData";
 
-    private InputStream dataStream;
+    private ByteInputStream dataStream;
     protected int sampleRate;
     private int bytesPerRead;
     private int bytesPerValue;
@@ -131,17 +140,20 @@ public class StreamDataSource extends BaseDataProcessor {
         super.initialize();
     }
 
-    public void setInputStream(InputStream inputStream) {
+    public void setInputStream(ByteInputStream inputStream) {
         setInputStream(inputStream, TimeFrame.INFINITE);
+    }
+
+    public void setInputStream(InputStream inputStream) {
+        setInputStream(InputStreams.fromInputStream(inputStream));
     }
 
     /**
      * Sets the InputStream from which this StreamDataSource reads.
-     *
      * @param inputStream the InputStream from which audio data comes
      * @param timeFrame time frame to process
      */
-    public void setInputStream(InputStream inputStream, TimeFrame timeFrame) {
+    public void setInputStream(ByteInputStream inputStream, TimeFrame timeFrame) {
         dataStream = inputStream;
         this.timeFrame = timeFrame;
         streamEndReached = false;

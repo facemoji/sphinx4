@@ -1,21 +1,20 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 
 package edu.cmu.sphinx.util;
 
-import java.io.*;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 
 /** Provides a set of generic utilities */
@@ -118,104 +117,6 @@ public class Utilities {
     }
 
 
-    static long maxUsed;
-
-
-    /**
-     * Dumps  out memory information
-     *
-     * @param msg addditional text for the dump
-     */
-
-    public static void dumpMemoryInfo(String msg) {
-        Runtime rt = Runtime.getRuntime();
-        long free = rt.freeMemory();
-        rt.gc();
-        long reclaimedMemory = (rt.freeMemory() - free)
-                / (1024 * 1024);
-        long freeMemory = rt.freeMemory() / (1024 * 1024);
-        long totalMemory = rt.totalMemory() / (1024 * 1024);
-        long usedMemory = rt.totalMemory() - rt.freeMemory();
-
-        if (usedMemory > maxUsed) {
-            maxUsed = usedMemory;
-        }
-
-        System.out.println("Memory (mb) "
-                + " total: " + totalMemory
-                + " reclaimed: " + reclaimedMemory
-                + " free: " + freeMemory
-                + " Max Used: " + (maxUsed / (1024 * 1024))
-                + " -- " + msg);
-    }
-
-
-    /**
-     * Returns the string representation of the given double value in normalized scientific notation. The
-     * <code>fractionDigits</code> argument gives the number of decimal digits in the fraction portion. For example, if
-     * <code>fractionDigits</code> is 4, then the 123450 will be "1.2345e+05". There will always be two digits in the
-     * exponent portion, and a plus or minus sign before the exponent.
-     *
-     * @param number         the double to convert
-     * @param fractionDigits the number of digits in the fraction part, e.g., 4 in "1.2345e+05".
-     * @return the string representation of the double in scientific notation
-     */
-    public static String doubleToScientificString(double number,
-                                                  int fractionDigits) {
-        DecimalFormat format = new DecimalFormat();
-
-        StringBuilder formatter = new StringBuilder(5 + fractionDigits).append("0.");
-        for (int i = 0; i < fractionDigits; i++) {
-            formatter.append('0');
-        }
-        formatter.append("E00");
-
-        format.applyPattern(formatter.toString());
-        String formatted = format.format(number);
-
-        int index = formatted.indexOf('E');
-        if (formatted.charAt(index + 1) != '-') {
-            return formatted.substring(0, index + 1) + '+' +
-                    formatted.substring(index + 1);
-        } else {
-            return formatted;
-        }
-    }
-
-
-    /**
-     * Returns true if the given binary cepstra file is in big-endian format. It assumes that the first 4 bytes of the
-     * file tells you how many 4-byte floating point cepstra values are in the file.
-     *
-     * @param filename the cepstra file name
-     * @return true if the given binary cepstra file is big-endian
-     * @throws IOException if something went wrong
-     */
-    public static boolean isCepstraFileBigEndian(String filename)
-            throws IOException {
-        File cepstraFile = new File(filename);
-        int fileSize = (int) cepstraFile.length();
-        DataInputStream stream =
-                new DataInputStream(new FileInputStream(filename));
-        int numberBytes = stream.readInt() * 4 + 4;
-        stream.close();
-        return (fileSize == numberBytes);
-    }
-
-
-    /**
-     * Reads the next float from the given DataInputStream, where the data is in little endian.
-     *
-     * @param dataStream the DataInputStream to read from
-     * @return a float
-     * @throws IOException if something went wrong
-     */
-    public static float readLittleEndianFloat(DataInputStream dataStream)
-            throws IOException {
-        return Float.intBitsToFloat(readLittleEndianInt(dataStream));
-    }
-
-
     /**
      * Reads the next little-endian integer from the given DataInputStream.
      *
@@ -256,7 +157,7 @@ public class Utilities {
         return Float.intBitsToFloat
                 (swapInteger(Float.floatToRawIntBits(floatValue)));
     }
-    
+
 
     /**
      * If a data point is below 'floor' make it equal to floor.
@@ -274,7 +175,7 @@ public class Utilities {
     /**
      * If a data point is non-zero and below 'floor' make it equal to floor
      * (don't floor zero values though).
-     * 
+     *
      * @param data the data to floor
      * @param floor the floored value
      */
@@ -285,11 +186,11 @@ public class Utilities {
             }
         }
     }
-    
+
 
     /**
      * Normalize the given data.
-     * 
+     *
      * @param data the data to normalize
      */
     public static void normalize(float[] data) {
@@ -305,28 +206,10 @@ public class Utilities {
     }
 
 
-    public static String join(List<String> tokens) {
-        StringBuilder builder = new StringBuilder();
-        for (String token : tokens) {
-            builder.append(token);
-            builder.append(' ');
-        }
-        return builder.toString().trim();
-    }
-
-
-    public static List<Integer> asList(int[] align) {
-        ArrayList<Integer> result = new ArrayList<Integer>(align.length);
-        for (int i : align) {
-            result.add(i);
-        }
-        return result;
-    }
-    
     /**
      * Combines two paths without too much logic only cares about avoiding
      * double backslashes since they hurt some resource searches.
-     * 
+     *
      * @param path1 First path to join
      * @param path2 Second path to join
      * @return combined path
@@ -340,7 +223,7 @@ public class Utilities {
         }
         return path1 + "/" + path2;
     }
-    
+
 }
 
-  
+
