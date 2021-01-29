@@ -1,24 +1,27 @@
 /*
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2002-2004 Sun Microsystems, Inc.  
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2002-2004 Sun Microsystems, Inc.
  * Portions Copyright 2002-2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 
 package edu.cmu.sphinx.frontend.window;
 
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.frontend.endpoint.*;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataEndSignal;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DataStartSignal;
+import edu.cmu.sphinx.frontend.DoubleData;
+import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
+import edu.cmu.sphinx.frontend.endpoint.SpeechStartSignal;
 import edu.cmu.sphinx.frontend.util.DataUtil;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Double;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,17 +55,23 @@ import java.util.Map;
  */
 public class RaisedCosineWindower extends BaseDataProcessor {
 
-    /** The property for window size in milliseconds. */
+    /**
+     * The property for window size in milliseconds.
+     */
     @S4Double(defaultValue = 25.625)
     public static final String PROP_WINDOW_SIZE_MS = "windowSizeInMs";
     private float windowSizeInMs;
 
-    /** The property for window shift in milliseconds, which has a default value of 10F. */
+    /**
+     * The property for window shift in milliseconds, which has a default value of 10F.
+     */
     @S4Double(defaultValue = 10.0)
     public static final String PROP_WINDOW_SHIFT_MS = "windowShiftInMs";
     private float windowShiftInMs;
 
-    /** The property for the alpha value of the Window, which is the value for the RaisedCosineWindow. */
+    /**
+     * The property for the alpha value of the Window, which is the value for the RaisedCosineWindow.
+     */
     @S4Double(defaultValue = 0.46)
     public static final String PROP_ALPHA = "alpha";
     private double alpha;
@@ -80,24 +89,15 @@ public class RaisedCosineWindower extends BaseDataProcessor {
     private long currentFirstSampleNumber;
     private int sampleRate;
 
-    public RaisedCosineWindower( double alpha, float windowSizeInMs, float windowShiftInMs ) {
+    public RaisedCosineWindower(double alpha, float windowSizeInMs, float windowShiftInMs) {
         initLogger();
         this.alpha = alpha;
         this.windowSizeInMs = windowSizeInMs;
         this.windowShiftInMs = windowShiftInMs;
     }
 
-    public RaisedCosineWindower( ) {
+    public RaisedCosineWindower() {
 
-    }
-
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-
-        alpha = ps.getDouble(PROP_ALPHA);
-        windowSizeInMs = ps.getFloat(PROP_WINDOW_SIZE_MS);
-        windowShiftInMs = ps.getFloat(PROP_WINDOW_SHIFT_MS);
     }
 
 
@@ -112,8 +112,6 @@ public class RaisedCosineWindower extends BaseDataProcessor {
 
     /**
      * Creates the Hamming Window.
-     *
-     * @param sampleRate
      */
     private void createWindow(int sampleRate) {
         if (cosineWindow != null && sampleRate == this.sampleRate) {
@@ -131,7 +129,7 @@ public class RaisedCosineWindower extends BaseDataProcessor {
             double oneMinusAlpha = (1 - alpha);
             for (int i = 0; i < cosineWindow.length; i++) {
                 cosineWindow[i] = oneMinusAlpha -
-                        alpha * Math.cos(2 * Math.PI * i / (cosineWindow.length - 1.0));
+                    alpha * Math.cos(2 * Math.PI * i / (cosineWindow.length - 1.0));
             }
         }
 
@@ -173,9 +171,9 @@ public class RaisedCosineWindower extends BaseDataProcessor {
                         DataStartSignal startSignal = (DataStartSignal) input;
 
                         createWindow(startSignal.getSampleRate());
-			
-                	// attach the frame-length and the shift-length to the start-signal to allow
-			// detection of incorrect frontend settings
+
+                        // attach the frame-length and the shift-length to the start-signal to allow
+                        // detection of incorrect frontend settings
                         Map<String, Object> props = startSignal.getProps();
                         props.put(WINDOW_SHIFT_SAMPLES, windowShift);
                         props.put(WINDOW_SIZE_SAMPLES, cosineWindow.length);
@@ -184,12 +182,12 @@ public class RaisedCosineWindower extends BaseDataProcessor {
                         currentFirstSampleNumber = -1;
                     } else if (input instanceof SpeechStartSignal) {
                         // reset the current first sample number
-                        currentFirstSampleNumber = -1;		    
+                        currentFirstSampleNumber = -1;
                     } else if (input instanceof DataEndSignal || input instanceof SpeechEndSignal) {
                         // end of utterance handling
                         processUtteranceEnd();
                     }
-		    
+
                     outputQueue.add(input);
                 }
             }
@@ -199,7 +197,7 @@ public class RaisedCosineWindower extends BaseDataProcessor {
             Data output = outputQueue.remove(0);
             if (output instanceof DoubleData) {
                 assert ((DoubleData) output).getValues().length ==
-                        cosineWindow.length;
+                    cosineWindow.length;
             }
             return output;
         } else {
@@ -280,11 +278,11 @@ public class RaisedCosineWindower extends BaseDataProcessor {
      * and then apply the Hamming window to it. Checks if buffer has data.
      */
     private void processUtteranceEnd() {
-	if (overflowBuffer.getOccupancy() > 0) {
-    	    overflowBuffer.padWindow(cosineWindow.length);
-	    applyRaisedCosineWindow
-        	        (overflowBuffer.getBuffer(), cosineWindow.length);
-    	    overflowBuffer.reset();
+        if (overflowBuffer.getOccupancy() > 0) {
+            overflowBuffer.padWindow(cosineWindow.length);
+            applyRaisedCosineWindow
+                (overflowBuffer.getBuffer(), cosineWindow.length);
+            overflowBuffer.reset();
         }
     }
 
@@ -293,7 +291,7 @@ public class RaisedCosineWindower extends BaseDataProcessor {
      * Applies the Hamming window to the given double array. The windows are added to the output queue. Returns the
      * index of the first array element of next window that is not produced because of insufficient data.
      *
-     * @param in     the audio data to apply window and the Hamming window
+     * @param in the audio data to apply window and the Hamming window
      * @param length the number of elements in the array to apply the RaisedCosineWindow
      * @return the index of the first array element of the next window
      */
@@ -328,8 +326,8 @@ public class RaisedCosineWindower extends BaseDataProcessor {
 
             // add the frame to the output queue
             outputQueue.add(new DoubleData
-                    (myWindow, sampleRate,
-                            currentFirstSampleNumber));
+                (myWindow, sampleRate,
+                    currentFirstSampleNumber));
             currentFirstSampleNumber += windowShift;
         }
 
@@ -340,20 +338,20 @@ public class RaisedCosineWindower extends BaseDataProcessor {
     /**
      * Returns the number of windows in the given array, given the windowSize and windowShift.
      *
-     * @param arraySize   the size of the array
-     * @param windowSize  the window size
+     * @param arraySize the size of the array
+     * @param windowSize the window size
      * @param windowShift the window shift
      * @return the number of windows
      */
     private static int getWindowCount(int arraySize, int windowSize,
-                                      int windowShift) {
+        int windowShift) {
         if (arraySize < windowSize) {
             return 0;
         } else {
             int windowCount = 1;
             for (int windowEnd = windowSize;
-                 windowEnd + windowShift <= arraySize;
-                 windowEnd += windowShift) {
+                windowEnd + windowShift <= arraySize;
+                windowEnd += windowShift) {
                 windowCount++;
             }
             return windowCount;
@@ -364,6 +362,7 @@ public class RaisedCosineWindower extends BaseDataProcessor {
     /**
      * Returns the shift size used to window the incoming speech signal. This value might be used by other components to
      * determine the time resolution of feature vectors.
+     *
      * @return the shift of the window
      */
     public float getWindowShiftInMs() {
@@ -382,6 +381,7 @@ public class RaisedCosineWindower extends BaseDataProcessor {
     /**
      * Rounds a given sample-number to the number of samples will be processed by this instance including the padding
      * samples at the end..
+     *
      * @param samples samples to round to
      * @return rounded result
      */

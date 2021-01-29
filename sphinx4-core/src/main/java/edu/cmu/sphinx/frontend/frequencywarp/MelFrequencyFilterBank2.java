@@ -10,8 +10,12 @@
  */
 package edu.cmu.sphinx.frontend.frequencywarp;
 
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DoubleData;
+import edu.cmu.sphinx.util.props.S4Double;
+import edu.cmu.sphinx.util.props.S4Integer;
 
 /**
  * Filters an input power spectrum through a bank of number of mel-filters. The
@@ -97,15 +101,21 @@ import edu.cmu.sphinx.util.props.*;
  */
 public class MelFrequencyFilterBank2 extends BaseDataProcessor {
 
-    /** The property for the number of filters in the filterbank. */
+    /**
+     * The property for the number of filters in the filterbank.
+     */
     @S4Integer(defaultValue = 40)
     public static final String PROP_NUMBER_FILTERS = "numberFilters";
 
-    /** The property for the minimum frequency covered by the filterbank. */
+    /**
+     * The property for the minimum frequency covered by the filterbank.
+     */
     @S4Double(defaultValue = 130.0)
     public static final String PROP_MIN_FREQ = "minimumFrequency";
 
-    /** The property for the maximum frequency covered by the filterbank. */
+    /**
+     * The property for the maximum frequency covered by the filterbank.
+     */
     @S4Double(defaultValue = 6800.0)
     public static final String PROP_MAX_FREQ = "maximumFrequency";
 
@@ -120,7 +130,7 @@ public class MelFrequencyFilterBank2 extends BaseDataProcessor {
     private MelFilter2[] filters;
 
     public MelFrequencyFilterBank2(double minFreq, double maxFreq,
-            int numberFilters) {
+        int numberFilters) {
         initLogger();
         this.minFreq = minFreq;
         this.maxFreq = maxFreq;
@@ -128,20 +138,6 @@ public class MelFrequencyFilterBank2 extends BaseDataProcessor {
     }
 
     public MelFrequencyFilterBank2() {
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see
-     * edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.
-     * util.props.PropertySheet)
-     */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        minFreq = ps.getDouble(PROP_MIN_FREQ);
-        maxFreq = ps.getDouble(PROP_MAX_FREQ);
-        numberFilters = ps.getInt(PROP_NUMBER_FILTERS);
     }
 
     /*
@@ -175,14 +171,12 @@ public class MelFrequencyFilterBank2 extends BaseDataProcessor {
      * @param numberFilters number of filters in the filterbank
      * @param minFreq lowest frequency in the range of interest
      * @param maxFreq highest frequency in the range of interest
-     * @throws IllegalArgumentException
      */
     private void buildFilterbank(int windowLength,
-            int numberFilters,
-            double minFreq,
-            double maxFreq)
-        throws IllegalArgumentException
-    {
+        int numberFilters,
+        double minFreq,
+        double maxFreq)
+        throws IllegalArgumentException {
         assert windowLength > 0;
         assert numberFilters > 0;
         // Initialize edges and center freq. These variables will be updated so
@@ -216,7 +210,6 @@ public class MelFrequencyFilterBank2 extends BaseDataProcessor {
      *
      * @param input input power spectrum
      * @return power spectrum
-     * @throws java.lang.IllegalArgumentException
      */
     private DoubleData process(DoubleData input)
         throws IllegalArgumentException {
@@ -228,9 +221,9 @@ public class MelFrequencyFilterBank2 extends BaseDataProcessor {
             buildFilterbank(windowLength, numberFilters, minFreq, maxFreq);
         } else if (in.length != ((windowLength >> 1) + 1)) {
             throw new IllegalArgumentException("Window size is incorrect: in.length == "
-                    + in.length
-                    + ", numberFftPoints == "
-                    + ((windowLength >> 1) + 1));
+                + in.length
+                + ", numberFftPoints == "
+                + ((windowLength >> 1) + 1));
         }
 
         double[] output = new double[numberFilters];
@@ -238,8 +231,8 @@ public class MelFrequencyFilterBank2 extends BaseDataProcessor {
             output[i] = filters[i].apply(in);
 
         DoubleData outputMelSpectrum = new DoubleData(output,
-                sampleRate,
-                input.getFirstSampleNumber());
+            sampleRate,
+            input.getFirstSampleNumber());
         return outputMelSpectrum;
     }
 
@@ -248,7 +241,7 @@ public class MelFrequencyFilterBank2 extends BaseDataProcessor {
      * input frame. Signals are returned unmodified.
      *
      * @return the next available Data or Signal object, or returns null if no
-     *         Data is available
+     * Data is available
      * @throws DataProcessingException if there is a data processing error
      */
     @Override

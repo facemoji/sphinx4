@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -17,7 +17,7 @@ import edu.cmu.sphinx.frontend.BaseDataProcessor;
 import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DoubleData;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.util.props.S4Integer;
 
 /**
  * Computes the PLP cepstrum from a given PLP Spectrum. The power spectrum has the amplitude compressed by computing the
@@ -34,16 +34,22 @@ import edu.cmu.sphinx.util.props.*;
  */
 public class PLPCepstrumProducer extends BaseDataProcessor {
 
-    /** The property for the number of filters in the filter bank. */
+    /**
+     * The property for the number of filters in the filter bank.
+     */
     @S4Integer(defaultValue = 32)
     public static final String PROP_NUMBER_FILTERS = "numberFilters";
 
-    /** The property specifying the length of the cepstrum data. */
+    /**
+     * The property specifying the length of the cepstrum data.
+     */
     @S4Integer(defaultValue = 13)
     public static final String PROP_CEPSTRUM_LENGTH
-            = "cepstrumLength";
+        = "cepstrumLength";
 
-    /** The property specifying the LPC order. */
+    /**
+     * The property specifying the LPC order.
+     */
     @S4Integer(defaultValue = 14)
     public static final String PROP_LPC_ORDER = "lpcOrder";
 
@@ -52,7 +58,7 @@ public class PLPCepstrumProducer extends BaseDataProcessor {
     private int numberPLPFilters;   // number of PLP filters
     private double[][] cosine;
 
-    public PLPCepstrumProducer(int numberPLPFilters,int cepstrumSize,int LPCOrder) {
+    public PLPCepstrumProducer(int numberPLPFilters, int cepstrumSize, int LPCOrder) {
         initLogger();
         this.numberPLPFilters = numberPLPFilters;
         this.cepstrumSize = cepstrumSize;
@@ -62,21 +68,10 @@ public class PLPCepstrumProducer extends BaseDataProcessor {
     public PLPCepstrumProducer() {
     }
 
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        numberPLPFilters = ps.getInt(PROP_NUMBER_FILTERS);
-        cepstrumSize = ps.getInt(PROP_CEPSTRUM_LENGTH);
-        LPCOrder = ps.getInt(PROP_LPC_ORDER);
-    }
 
-
-    /** Constructs a PLPCepstrumProducer */
+    /**
+     * Constructs a PLPCepstrumProducer
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -84,7 +79,9 @@ public class PLPCepstrumProducer extends BaseDataProcessor {
     }
 
 
-    /** Compute the Cosine values for IDCT. */
+    /**
+     * Compute the Cosine values for IDCT.
+     */
     private void computeCosine() {
         cosine = new double[LPCOrder + 1][numberPLPFilters];
 
@@ -105,7 +102,6 @@ public class PLPCepstrumProducer extends BaseDataProcessor {
      * simulates the non-linear relationship between sound intensity and percieved loudness. Computationally, this
      * operation is used to reduce the spectral amplitude of the critical band to enable all-pole modeling with
      * relatively low order AR filters.
-     * @param inspectrum
      */
     private double[] powerLawCompress(double[] inspectrum) {
         double[] compressedspectrum = new double[inspectrum.length];
@@ -145,7 +141,6 @@ public class PLPCepstrumProducer extends BaseDataProcessor {
      *
      * @param input a PLP Spectrum frame
      * @return a PLP Data frame
-     * @throws IllegalArgumentException
      */
     private Data process(DoubleData input) throws IllegalArgumentException {
 
@@ -153,9 +148,9 @@ public class PLPCepstrumProducer extends BaseDataProcessor {
 
         if (plpspectrum.length != numberPLPFilters) {
             throw new IllegalArgumentException
-                    ("PLPSpectrum size is incorrect: plpspectrum.length == " +
-                            plpspectrum.length + ", numberPLPFilters == " +
-                            numberPLPFilters);
+                ("PLPSpectrum size is incorrect: plpspectrum.length == " +
+                    plpspectrum.length + ", numberPLPFilters == " +
+                    numberPLPFilters);
         }
 
         // power law compress spectrum
@@ -171,8 +166,8 @@ public class PLPCepstrumProducer extends BaseDataProcessor {
         double[] cepstrumDouble = LPC.getData(cepstrumSize);
 
         DoubleData cepstrum = new DoubleData
-                (cepstrumDouble, input.getSampleRate(),
-                        input.getFirstSampleNumber());
+            (cepstrumDouble, input.getSampleRate(),
+                input.getFirstSampleNumber());
 
         return cepstrum;
     }

@@ -12,11 +12,12 @@
 
 package edu.cmu.sphinx.frontend.endpoint;
 
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataEndSignal;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DataStartSignal;
 import edu.cmu.sphinx.util.props.S4Integer;
-
 import java.util.LinkedList;
 
 /**
@@ -40,7 +41,7 @@ import java.util.LinkedList;
  * A SPEECH_END signal is inserted at 'speechTrailer' time after the first
  * non-speech audio. The algorithm returns to 'out-of-speech' state. If any
  * speech audio is encountered in-between, the accounting starts all over again.
- * 
+ *
  * While speech audio is processed delay is lowered to some minimal amount. This
  * helps to segment both slow speech with visible delays and fast speech when
  * delays are minimal.
@@ -90,15 +91,6 @@ public class SpeechMarker extends BaseDataProcessor {
     public SpeechMarker() {
     }
 
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-
-        startSpeechTime = ps.getInt(PROP_START_SPEECH);
-        endSilenceTime = ps.getInt(PROP_END_SILENCE);
-        speechLeader = ps.getInt(PROP_SPEECH_LEADER);
-    }
-
     /**
      * Initializes this SpeechMarker
      */
@@ -124,10 +116,9 @@ public class SpeechMarker extends BaseDataProcessor {
 
     /**
      * Returns the next Data object.
-     * 
+     *
      * @return the next Data object, or null if none available
-     * @throws DataProcessingException
-     *             if a data processing error occurs
+     * @throws DataProcessingException if a data processing error occurs
      */
     @Override
     public Data getData() throws DataProcessingException {
@@ -176,7 +167,7 @@ public class SpeechMarker extends BaseDataProcessor {
                     inSpeech = true;
                     outputQueue.add(new SpeechStartSignal(cdata.getCollectTime() - speechLeader - startSpeechFrames));
                     outputQueue.addAll(inputQueue.subList(
-                            Math.max(0, inputQueue.size() - startSpeechFrames - speechLeaderFrames), inputQueue.size()));
+                        Math.max(0, inputQueue.size() - startSpeechFrames - speechLeaderFrames), inputQueue.size()));
                     inputQueue.clear();
                 }
                 if (inSpeech && silenceCount == endSilenceFrames) {

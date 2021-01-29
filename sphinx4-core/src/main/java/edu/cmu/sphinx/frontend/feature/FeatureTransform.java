@@ -1,21 +1,24 @@
 /*
- * Copyright 1999-2010 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ * Copyright 1999-2010 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * Portions Copyright 2008 PC-NG Inc.
- * 
+ *
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 package edu.cmu.sphinx.frontend.feature;
 
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.linguist.acoustic.tiedstate.*;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.FloatData;
+import edu.cmu.sphinx.linguist.acoustic.tiedstate.Loader;
+import edu.cmu.sphinx.util.props.S4Component;
 
 /**
  * Implements a linear feature transformation transformation.
@@ -45,19 +48,6 @@ public class FeatureTransform extends BaseDataProcessor {
     public FeatureTransform() {
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util
-     * .props.PropertySheet)
-     */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        init((Loader) ps.getComponent(PROP_LOADER));
-    }
-
     private void init(Loader loader) {
         this.loader = loader;
 
@@ -73,11 +63,10 @@ public class FeatureTransform extends BaseDataProcessor {
     /**
      * Returns the next Data object being processed by this LDA, or if it is a
      * Signal, it is returned without modification.
-     * 
+     *
      * @return the next available Data object, returns null if no Data object is
-     *         available
-     * @throws DataProcessingException
-     *             if there is a processing error
+     * available
+     * @throws DataProcessingException if there is a processing error
      * @see Data
      */
     @Override
@@ -87,7 +76,7 @@ public class FeatureTransform extends BaseDataProcessor {
         if (null == transform || null == data || !(data instanceof FloatData))
             return data;
 
-        FloatData floatData = (FloatData) data; 
+        FloatData floatData = (FloatData) data;
         float[] features = floatData.getValues();
 
         if (features.length > transform[0].length + 1)
@@ -106,7 +95,7 @@ public class FeatureTransform extends BaseDataProcessor {
         }
 
         return new FloatData(result,
-                             floatData.getSampleRate(),
-                             floatData.getFirstSampleNumber());
+            floatData.getSampleRate(),
+            floatData.getFirstSampleNumber());
     }
 }

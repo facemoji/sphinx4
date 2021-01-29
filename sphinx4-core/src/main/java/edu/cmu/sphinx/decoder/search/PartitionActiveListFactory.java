@@ -1,30 +1,28 @@
 /*
- * 
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ *
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 package edu.cmu.sphinx.decoder.search;
-
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** A factory for PartitionActiveLists */
+/**
+ * A factory for PartitionActiveLists
+ */
 public class PartitionActiveListFactory extends ActiveListFactory {
 
     /**
-     * 
      * @param absoluteBeamWidth beam for absolute pruning
      * @param relativeBeamWidth beam for relative pruning
      */
@@ -36,22 +34,12 @@ public class PartitionActiveListFactory extends ActiveListFactory {
 
     }
 
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-    }
-
 
     /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.decoder.search.ActiveListFactory#newInstance()
-    */
+     * (non-Javadoc)
+     *
+     * @see edu.cmu.sphinx.decoder.search.ActiveListFactory#newInstance()
+     */
     @Override
     public ActiveList newInstance() {
         return new PartitionActiveList(absoluteBeamWidth, logRelativeBeamWidth);
@@ -62,7 +50,7 @@ public class PartitionActiveListFactory extends ActiveListFactory {
      * An active list that does absolute beam with pruning by partitioning the
      * token list based on absolute beam width, instead of sorting the token
      * list, and then chopping the list up with the absolute beam width. The
-     * expected run time of this partitioning algorithm is O(n), instead of O(n log n) 
+     * expected run time of this partitioning algorithm is O(n), instead of O(n log n)
      * for merge sort.
      * <p>
      * This class is not thread safe and should only be used by a single thread.
@@ -81,12 +69,14 @@ public class PartitionActiveListFactory extends ActiveListFactory {
         private final Partitioner partitioner = new Partitioner();
 
 
-        /** Creates an empty active list
+        /**
+         * Creates an empty active list
+         *
          * @param absoluteBeamWidth beam for absolute pruning
          * @param logRelativeBeamWidth beam for relative pruning
          */
         public PartitionActiveList(int absoluteBeamWidth,
-                                   float logRelativeBeamWidth) {
+            float logRelativeBeamWidth) {
             this.absoluteBeamWidth = absoluteBeamWidth;
             this.logRelativeBeamWidth = logRelativeBeamWidth;
             int listSize = 2000;
@@ -117,12 +107,14 @@ public class PartitionActiveListFactory extends ActiveListFactory {
         }
 
 
-        /** Doubles the capacity of the Token array. */
+        /**
+         * Doubles the capacity of the Token array.
+         */
         private void doubleCapacity() {
             tokenList = Arrays.copyOf(tokenList, tokenList.length * 2);
         }
 
-        
+
         /**
          * Purges excess members. Remove all nodes that fall below the relativeBeamWidth
          *
@@ -138,7 +130,7 @@ public class PartitionActiveListFactory extends ActiveListFactory {
                 // need to sort the tokens to apply the beam
                 if (size > absoluteBeamWidth) {
                     size = partitioner.partition(tokenList, size,
-                            absoluteBeamWidth) + 1;
+                        absoluteBeamWidth) + 1;
                 }
             }
             return this;
@@ -226,8 +218,8 @@ public class PartitionActiveListFactory extends ActiveListFactory {
 
 
         /* (non-Javadoc)
-        * @see edu.cmu.sphinx.decoder.search.ActiveList#createNew()
-        */
+         * @see edu.cmu.sphinx.decoder.search.ActiveList#createNew()
+         */
         public ActiveList newInstance() {
             return PartitionActiveListFactory.this.newInstance();
         }

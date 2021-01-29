@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * Helps to tweak configuration without touching XML-file directly.
  */
-public class PhonemeRecognitionContext {
+public class PhonemeRecognizerFactory {
 
     public static Recognizer createPhonemeRecognizer(DataProcessor dataSource) {
         UnitManager unitManager = new UnitManager();

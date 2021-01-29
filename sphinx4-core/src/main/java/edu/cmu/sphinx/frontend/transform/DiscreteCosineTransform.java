@@ -15,7 +15,7 @@ import edu.cmu.sphinx.frontend.BaseDataProcessor;
 import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DoubleData;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.util.props.S4Integer;
 
 /**
  * Applies a logarithm and then a Discrete Cosine Transform (DCT) to the input data. The input data is normally the mel
@@ -31,11 +31,15 @@ public class DiscreteCosineTransform extends BaseDataProcessor {
     public static final int PROP_NUMBER_FILTERS_DEFAULT = 40;
     public static final int PROP_CEPSTRUM_LENGTH_DEFAULT = 13;
 
-    /** The property for the number of filters in the filterbank. */
+    /**
+     * The property for the number of filters in the filterbank.
+     */
     @S4Integer(defaultValue = PROP_NUMBER_FILTERS_DEFAULT)
     public static final String PROP_NUMBER_FILTERS = "numberFilters";
 
-    /** The property for the size of the cepstrum */
+    /**
+     * The property for the size of the cepstrum
+     */
     @S4Integer(defaultValue = PROP_CEPSTRUM_LENGTH_DEFAULT)
     public static final String PROP_CEPSTRUM_LENGTH = "cepstrumLength";
 
@@ -44,21 +48,13 @@ public class DiscreteCosineTransform extends BaseDataProcessor {
     protected double[][] melcosine;
 
 
-    public DiscreteCosineTransform( int numberMelFilters, int cepstrumSize ) {
+    public DiscreteCosineTransform(int numberMelFilters, int cepstrumSize) {
         initLogger();
         this.numberMelFilters = numberMelFilters;
         this.cepstrumSize = cepstrumSize;
     }
 
-    public DiscreteCosineTransform( ) {
-    }
-
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-
-        numberMelFilters = ps.getInt(PROP_NUMBER_FILTERS);
-        cepstrumSize = ps.getInt(PROP_CEPSTRUM_LENGTH);
+    public DiscreteCosineTransform() {
     }
 
 
@@ -91,10 +87,9 @@ public class DiscreteCosineTransform extends BaseDataProcessor {
      *
      * @param input a MelSpectrum frame
      * @return a mel Cepstrum frame
-     * @throws IllegalArgumentException
      */
     private DoubleData process(DoubleData input)
-            throws IllegalArgumentException {
+        throws IllegalArgumentException {
         double[] melspectrum = input.getValues();
 
         if (melcosine == null) {
@@ -103,9 +98,9 @@ public class DiscreteCosineTransform extends BaseDataProcessor {
 
         } else if (melspectrum.length != numberMelFilters) {
             throw new IllegalArgumentException
-                    ("MelSpectrum size is incorrect: melspectrum.length == " +
-                            melspectrum.length + ", numberMelFilters == " +
-                            numberMelFilters);
+                ("MelSpectrum size is incorrect: melspectrum.length == " +
+                    melspectrum.length + ", numberMelFilters == " +
+                    numberMelFilters);
         }
         // first compute the log of the spectrum
         for (int i = 0; i < melspectrum.length; ++i) {
@@ -118,11 +113,13 @@ public class DiscreteCosineTransform extends BaseDataProcessor {
         cepstrum = applyMelCosine(melspectrum);
 
         return new DoubleData(cepstrum, input.getSampleRate(),
-                input.getFirstSampleNumber());
+            input.getFirstSampleNumber());
     }
 
 
-    /** Compute the MelCosine filter bank. */
+    /**
+     * Compute the MelCosine filter bank.
+     */
     protected void computeMelCosine() {
         melcosine = new double[cepstrumSize][numberMelFilters];
         double period = (double) 2 * numberMelFilters;

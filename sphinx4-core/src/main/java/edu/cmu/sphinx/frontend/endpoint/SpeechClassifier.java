@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -13,21 +13,21 @@
 
 package edu.cmu.sphinx.frontend.endpoint;
 
-import edu.cmu.sphinx.frontend.*;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DataStartSignal;
+import edu.cmu.sphinx.frontend.DoubleData;
 import edu.cmu.sphinx.util.LogMath;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Double;
 import edu.cmu.sphinx.util.props.S4Integer;
-
 import java.util.logging.Level;
 
 /**
  * Implements a level tracking endpointer invented by Bent Schmidt Nielsen.
- * <p>This endpointer is composed of two main steps. 
- * <ol> 
+ * <p>This endpointer is composed of two main steps.
+ * <ol>
  * <li>classification of audio into speech and non-speech
- * <li>inserting SPEECH_START and SPEECH_END signals around speech and removing non-speech regions 
+ * <li>inserting SPEECH_START and SPEECH_END signals around speech and removing non-speech regions
  * </ol>
  * <p>
  * The first step, classification of audio into speech and non-speech, uses Bent Schmidt Nielsen's algorithm. Each
@@ -41,11 +41,15 @@ import java.util.logging.Level;
  */
 public class SpeechClassifier extends AbstractVoiceActivityDetector {
 
-    /** The property specifying the endpointing frame length in milliseconds. */
+    /**
+     * The property specifying the endpointing frame length in milliseconds.
+     */
     @S4Integer(defaultValue = 10)
     public static final String PROP_FRAME_LENGTH_MS = "frameLengthInMs";
 
-    /** The property specifying the minimum signal level used to update the background signal level. */
+    /**
+     * The property specifying the minimum signal level used to update the background signal level.
+     */
     @S4Double(defaultValue = 0)
     public static final String PROP_MIN_SIGNAL = "minSignal";
 
@@ -58,17 +62,25 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
     @S4Double(defaultValue = 10)
     public static final String PROP_THRESHOLD = "threshold";
 
-    /** The property specifying the adjustment. */
+    /**
+     * The property specifying the adjustment.
+     */
     @S4Double(defaultValue = 0.003)
     public static final String PROP_ADJUSTMENT = "adjustment";
 
     protected final double averageNumber = 1;
     protected double adjustment;
-    /** average signal level. */
+    /**
+     * average signal level.
+     */
     protected double level;
-    /** background signal level. */
+    /**
+     * background signal level.
+     */
     protected double background;
-    /** minimum valid signal level. */
+    /**
+     * minimum valid signal level.
+     */
     protected double minSignal;
     protected double threshold;
     protected float frameLengthSec;
@@ -79,8 +91,8 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
     protected long backgroundFrames;
     protected double totalBackgroundLevel;
     protected double totalSpeechLevel;
-    
-    public SpeechClassifier(int frameLengthMs, double adjustment, double threshold, double minSignal ) {
+
+    public SpeechClassifier(int frameLengthMs, double adjustment, double threshold, double minSignal) {
         initLogger();
         this.frameLengthSec = frameLengthMs / 1000.f;
 
@@ -94,24 +106,10 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
     public SpeechClassifier() {
     }
 
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        int frameLengthMs = ps.getInt(PROP_FRAME_LENGTH_MS);
-        frameLengthSec = frameLengthMs / 1000.f;
 
-        adjustment = ps.getDouble(PROP_ADJUSTMENT);
-        threshold = ps.getDouble(PROP_THRESHOLD);
-        minSignal = ps.getDouble(PROP_MIN_SIGNAL);
-
-        logger = ps.getLogger();
-        //logger.setLevel(Level.FINEST);
- 
-        initialize();
-    }
-
-
-    /** Initializes this LevelTracker endpointer and DataProcessor predecessor. */
+    /**
+     * Initializes this LevelTracker endpointer and DataProcessor predecessor.
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -119,7 +117,9 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
     }
 
 
-    /** Resets this LevelTracker to a starting state. */
+    /**
+     * Resets this LevelTracker to a starting state.
+     */
     protected void reset() {
         level = 0;
         background = 300;
@@ -140,7 +140,7 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
             sumOfSquares += sample * sample;
         }
         double rootMeanSquare = Math.sqrt
-                (sumOfSquares / samples.length);
+            (sumOfSquares / samples.length);
         rootMeanSquare = Math.max(rootMeanSquare, 1);
         return (LogMath.log10((float) rootMeanSquare) * 20);
     }
@@ -176,27 +176,27 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
                 speech = "*";
 
             logger.finest("Bkg: " + background + ", level: " + level +
-                    ", current: " + current + ' ' + speech);
+                ", current: " + current + ' ' + speech);
         }
 
-        collectStats (isSpeech);
-        
+        collectStats(isSpeech);
+
         return labeledAudio;
     }
 
     /**
      * Reset statistics
      */
-    private void resetStats () {
+    private void resetStats() {
         backgroundFrames = 1;
         speechFrames = 1;
         totalSpeechLevel = 0;
         totalBackgroundLevel = 0;
     }
-    
+
     /**
      * Collects the statistics to provide information about signal to noise ratio in channel
-     * 
+     *
      * @param isSpeech if the current frame is classified as speech
      */
     private void collectStats(boolean isSpeech) {
@@ -206,7 +206,7 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
         } else {
             totalBackgroundLevel = totalBackgroundLevel + background;
             backgroundFrames = backgroundFrames + 1;
-        }        
+        }
     }
 
     /**
@@ -228,40 +228,40 @@ public class SpeechClassifier extends AbstractVoiceActivityDetector {
         }
         return audio;
     }
-    
+
     /**
-     * Method that returns if current returned frame contains speech. 
-     * It could be used by noise filter for example to adjust noise 
+     * Method that returns if current returned frame contains speech.
+     * It could be used by noise filter for example to adjust noise
      * spectrum estimation.
-     * 
-     * @return if current frame is speech 
+     *
+     * @return if current frame is speech
      */
     @Override
     public boolean isSpeech() {
-    	return isSpeech;
+        return isSpeech;
     }
-    
-    /** 
-     * Retrieves accumulated signal to noise ratio in dbScale 
-     * 
+
+    /**
+     * Retrieves accumulated signal to noise ratio in dbScale
+     *
      * @return signal to noise ratio
      */
-    public double getSNR () {
+    public double getSNR() {
         double snr = (totalSpeechLevel / speechFrames) - (totalBackgroundLevel / backgroundFrames);
-        logger.fine ("Background " + totalBackgroundLevel / backgroundFrames);
-        logger.fine ("Speech " + totalSpeechLevel / speechFrames);
-        logger.fine ("SNR is " + snr);
+        logger.fine("Background " + totalBackgroundLevel / backgroundFrames);
+        logger.fine("Speech " + totalSpeechLevel / speechFrames);
+        logger.fine("SNR is " + snr);
         return snr;
     }
- 
-    /** 
+
+    /**
      * Return the estimation if input data was noisy enough to break
      * recognition. The audio is counted noisy if signal to noise ratio
      * is less then 20dB.
-     * 
+     *
      * @return estimation of data being noisy
      */
-    public boolean getNoisy () {
+    public boolean getNoisy() {
         return (getSNR() < 20);
     }
 }

@@ -1,7 +1,5 @@
 package edu.cmu.sphinx.frontend.util;
 
-import edu.cmu.sphinx.util.props.Configurable;
-
 import java.io.File;
 
 /**
@@ -11,14 +9,14 @@ import java.io.File;
  * @author Holger Brandl
  */
 
-public interface AudioFileProcessListener extends Configurable {
+public interface AudioFileProcessListener {
 
     /**
      * This method is invoked whenever a new file is started to become processed by an audio file data source.
      *
      * @param audioFile The name of the new audio file.
      */
-    public void audioFileProcStarted(File audioFile);
+    void audioFileProcStarted(File audioFile);
 
 
     /**
@@ -26,5 +24,5 @@ public interface AudioFileProcessListener extends Configurable {
      *
      * @param audioFile The name of the processed audio file.
      */
-    public void audioFileProcFinished(File audioFile);
+    void audioFileProcFinished(File audioFile);
 }

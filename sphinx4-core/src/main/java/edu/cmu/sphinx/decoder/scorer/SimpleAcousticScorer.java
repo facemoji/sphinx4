@@ -8,8 +8,6 @@ import edu.cmu.sphinx.frontend.Signal;
 import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
 import edu.cmu.sphinx.frontend.util.DataUtil;
 import edu.cmu.sphinx.util.props.ConfigurableAdapter;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Component;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,19 +24,15 @@ import java.util.List;
  */
 public class SimpleAcousticScorer extends ConfigurableAdapter implements AcousticScorer {
 
-    /** Property the defines the frontend to retrieve features from for scoring */
+    /**
+     * Property the defines the frontend to retrieve features from for scoring
+     */
     @S4Component(type = BaseDataProcessor.class)
     public final static String FEATURE_FRONTEND = "frontend";
     protected BaseDataProcessor frontEnd;
 
     private final LinkedList<Data> storedData = new LinkedList<>();
     private boolean seenEnd = false;
-
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        this.frontEnd = (BaseDataProcessor) ps.getComponent(FEATURE_FRONTEND);
-    }
 
     public SimpleAcousticScorer() {
     }
@@ -50,10 +44,9 @@ public class SimpleAcousticScorer extends ConfigurableAdapter implements Acousti
     /**
      * Scores the given set of states.
      *
-     * @param scoreableList
-     *            A list containing scoreable objects to be scored
+     * @param scoreableList A list containing scoreable objects to be scored
      * @return The best scoring scoreable, or <code>null</code> if there are no
-     *         more features to score
+     * more features to score
      */
     public Data calculateScores(List<? extends Scoreable> scoreableList) {
         Data data;
@@ -111,13 +104,11 @@ public class SimpleAcousticScorer extends ConfigurableAdapter implements Acousti
      * Scores a a list of <code>Scoreable</code>s given a <code>Data</code>
      * -object.
      *
-     * @param scoreableList
-     *            The list of Scoreables to be scored
-     * @param data
-     *            The <code>Data</code>-object to be used for scoring.
+     * @param scoreableList The list of Scoreables to be scored
+     * @param data The <code>Data</code>-object to be used for scoring.
      * @param <T> type for scorables
      * @return the best scoring <code>Scoreable</code> or <code>null</code> if
-     *         the list of scoreables was empty.
+     * the list of scoreables was empty.
      */
     protected <T extends Scoreable> T doScoring(List<T> scoreableList, Data data) {
 
@@ -125,11 +116,11 @@ public class SimpleAcousticScorer extends ConfigurableAdapter implements Acousti
         float bestScore = -Float.MAX_VALUE;
 
         for (T item : scoreableList) {
-    	    item.calculateScore(data);
-    	    if (item.getScore() > bestScore) {
-    		bestScore = item.getScore();
-    		best = item;
-    	    }
+            item.calculateScore(data);
+            if (item.getScore() > bestScore) {
+                bestScore = item.getScore();
+                best = item;
+            }
         }
         return best;
     }

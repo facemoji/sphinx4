@@ -27,8 +27,6 @@ import edu.cmu.sphinx.linguist.allphone.AllphoneLinguist;
 import edu.cmu.sphinx.recognizer.Recognizer;
 import edu.cmu.sphinx.result.Result;
 import edu.cmu.sphinx.result.WordResult;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -89,10 +87,6 @@ public class AllphoneCoverageTest {
         } else {
           System.out.printf(" nw:%d ", bestToken.getCollectTime());
         }
-      }
-
-      @Override
-      public void newProperties(PropertySheet ps) throws PropertyException {
       }
     };
   }

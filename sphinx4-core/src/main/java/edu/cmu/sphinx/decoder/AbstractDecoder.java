@@ -13,18 +13,21 @@ package edu.cmu.sphinx.decoder;
 
 import edu.cmu.sphinx.decoder.search.SearchManager;
 import edu.cmu.sphinx.result.Result;
-import edu.cmu.sphinx.util.props.*;
-
+import edu.cmu.sphinx.util.props.S4Boolean;
+import edu.cmu.sphinx.util.props.S4Component;
+import edu.cmu.sphinx.util.props.S4ComponentList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-/** An abstract decoder which implements all functionality which is independent of the used decoding-paradigm (pull/push). */
-public abstract class AbstractDecoder implements ResultProducer, Configurable {
+/**
+ * An abstract decoder which implements all functionality which is independent of the used decoding-paradigm (pull/push).
+ */
+public abstract class AbstractDecoder implements ResultProducer {
 
     /**
      * The property that defines the name of the search manager to use
-     * */
+     */
     @S4Component(type = SearchManager.class)
     public final static String PROP_SEARCH_MANAGER = "searchManager";
     protected SearchManager searchManager;
@@ -36,7 +39,7 @@ public abstract class AbstractDecoder implements ResultProducer, Configurable {
     /**
      * If set to true the used search-manager will be automatically allocated
      * in <code>newProperties()</code>.
-     * */
+     */
     @S4Boolean(defaultValue = false)
     public static final String AUTO_ALLOCATE = "autoAllocate";
 
@@ -58,6 +61,7 @@ public abstract class AbstractDecoder implements ResultProducer, Configurable {
 
     /**
      * Abstract decoder to implement live and batch recognizers
+     *
      * @param searchManager search manager to use
      * @param fireNonFinalResults to fire result during decoding
      * @param autoAllocate automatic allocate all components
@@ -65,8 +69,8 @@ public abstract class AbstractDecoder implements ResultProducer, Configurable {
      */
     public AbstractDecoder(SearchManager searchManager, boolean fireNonFinalResults, boolean autoAllocate, List<ResultListener> resultListeners) {
         String name = getClass().getName();
-             init( name, Logger.getLogger(name),
-                   searchManager, fireNonFinalResults, autoAllocate, resultListeners);        
+        init(name, Logger.getLogger(name),
+            searchManager, fireNonFinalResults, autoAllocate, resultListeners);
     }
 
     /**
@@ -76,10 +80,6 @@ public abstract class AbstractDecoder implements ResultProducer, Configurable {
      * @return a result
      */
     public abstract Result decode(String referenceText);
-
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        init( ps.getInstanceName(), ps.getLogger(), (SearchManager) ps.getComponent(PROP_SEARCH_MANAGER), ps.getBoolean(FIRE_NON_FINAL_RESULTS), ps.getBoolean(AUTO_ALLOCATE), ps.getComponentList(PROP_RESULT_LISTENERS, ResultListener.class));
-    }
 
     private void init(String name, Logger logger, SearchManager searchManager, boolean fireNonFinalResults, boolean autoAllocate, List<ResultListener> listeners) {
         this.name = name;
@@ -98,13 +98,17 @@ public abstract class AbstractDecoder implements ResultProducer, Configurable {
     }
 
 
-    /** Allocate resources necessary for decoding */
+    /**
+     * Allocate resources necessary for decoding
+     */
     public void allocate() {
         searchManager.allocate();
     }
 
 
-    /** Deallocate resources */
+    /**
+     * Deallocate resources
+     */
     public void deallocate() {
         searchManager.deallocate();
     }
@@ -141,7 +145,7 @@ public abstract class AbstractDecoder implements ResultProducer, Configurable {
             for (ResultListener resultListener : resultListeners) {
                 resultListener.newResult(result);
             }
-        }else {
+        } else {
             logger.finer("skipping non-final result " + result);
         }
     }

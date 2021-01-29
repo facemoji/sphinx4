@@ -3,10 +3,6 @@ description = 'Sphinx4 core'
 dependencies {
     implementation project(':sphinx4-data')
 
-    implementation group: 'org.apache.commons', name: 'commons-math3', version:'3.2'
-    implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    runtime 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
-
     testImplementation group: 'org.testng', name: 'testng', version:'6.8.8'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
 }

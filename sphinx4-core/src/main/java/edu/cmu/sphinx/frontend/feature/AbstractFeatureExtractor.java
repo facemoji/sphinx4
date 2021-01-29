@@ -1,21 +1,27 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 package edu.cmu.sphinx.frontend.feature;
 
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.frontend.endpoint.*;
-import edu.cmu.sphinx.util.props.*;
-
-import java.util.*;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataEndSignal;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DataStartSignal;
+import edu.cmu.sphinx.frontend.DoubleData;
+import edu.cmu.sphinx.frontend.Signal;
+import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
+import edu.cmu.sphinx.util.props.S4Integer;
+import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * Abstract base class for windowed feature extractors like DeltasFeatureExtractor, ConcatFeatureExtractor
@@ -24,7 +30,9 @@ import java.util.*;
  */
 public abstract class AbstractFeatureExtractor extends BaseDataProcessor {
 
-    /** The property for the window of the DeltasFeatureExtractor. */
+    /**
+     * The property for the window of the DeltasFeatureExtractor.
+     */
     @S4Integer(defaultValue = 3)
     public static final String PROP_FEATURE_WINDOW = "windowSize";
 
@@ -46,23 +54,12 @@ public abstract class AbstractFeatureExtractor extends BaseDataProcessor {
     public AbstractFeatureExtractor() {
     }
 
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        window = ps.getInt(PROP_FEATURE_WINDOW);
-    }
-
 
     /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
-    */
+     * (non-Javadoc)
+     *
+     * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -74,7 +71,9 @@ public abstract class AbstractFeatureExtractor extends BaseDataProcessor {
     }
 
 
-    /** Resets the DeltasFeatureExtractor to be ready to read the next segment of data. */
+    /**
+     * Resets the DeltasFeatureExtractor to be ready to read the next segment of data.
+     */
     private void reset() {
         bufferPosition = 0;
         currentPosition = 0;
@@ -135,10 +134,9 @@ public abstract class AbstractFeatureExtractor extends BaseDataProcessor {
      *
      * @param cepstrum the Data to replicate
      * @return the number of Features that can be computed
-     * @throws edu.cmu.sphinx.frontend.DataProcessingException
      */
     private int processFirstCepstrum(Data cepstrum)
-            throws DataProcessingException {
+        throws DataProcessingException {
         if (cepstrum instanceof DataEndSignal) {
             outputQueue.add(cepstrum);
             return 0;
@@ -227,7 +225,9 @@ public abstract class AbstractFeatureExtractor extends BaseDataProcessor {
     }
 
 
-    /** Computes the next Feature. */
+    /**
+     * Computes the next Feature.
+     */
     private void computeFeature() {
         Data feature = computeNextFeature();
         outputQueue.add(feature);

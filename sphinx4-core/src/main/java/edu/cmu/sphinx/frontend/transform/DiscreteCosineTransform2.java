@@ -1,21 +1,15 @@
 package edu.cmu.sphinx.frontend.transform;
 
-import edu.cmu.sphinx.util.props.PropertySheet;
-import edu.cmu.sphinx.util.props.PropertyException;
-
-/** Applies the optimized MelCosine filter used in pocketsphinx to the given melspectrum. */
+/**
+ * Applies the optimized MelCosine filter used in pocketsphinx to the given melspectrum.
+ */
 public class DiscreteCosineTransform2 extends DiscreteCosineTransform {
 
-    public DiscreteCosineTransform2( int numberMelFilters, int cepstrumSize ) {
-        super(numberMelFilters,cepstrumSize);
+    public DiscreteCosineTransform2(int numberMelFilters, int cepstrumSize) {
+        super(numberMelFilters, cepstrumSize);
     }
 
-    public DiscreteCosineTransform2( ) {
-    }
-
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
+    public DiscreteCosineTransform2() {
     }
 
 

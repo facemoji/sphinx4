@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -16,7 +16,8 @@ import edu.cmu.sphinx.frontend.BaseDataProcessor;
 import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DoubleData;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.util.props.S4Double;
+import edu.cmu.sphinx.util.props.S4Integer;
 
 /**
  * Filters an input power spectrum through a PLP filterbank. The filters in the filterbank are placed in the frequency
@@ -35,15 +36,21 @@ import edu.cmu.sphinx.util.props.*;
  */
 public class PLPFrequencyFilterBank extends BaseDataProcessor {
 
-    /** The property for the number of filters in the filterbank. */
+    /**
+     * The property for the number of filters in the filterbank.
+     */
     @S4Integer(defaultValue = 32)
     public static final String PROP_NUMBER_FILTERS = "numberFilters";
 
-    /** The property for the center frequency of the lowest filter in the filterbank. */
+    /**
+     * The property for the center frequency of the lowest filter in the filterbank.
+     */
     @S4Double(defaultValue = 130.0)
     public static final String PROP_MIN_FREQ = "minimumFrequency";
 
-    /** The property for the center frequency of the highest filter in the filterbank. */
+    /**
+     * The property for the center frequency of the highest filter in the filterbank.
+     */
     @S4Double(defaultValue = 3600.0)
     public static final String PROP_MAX_FREQ = "maximumFrequency";
 
@@ -65,22 +72,11 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
 
     public PLPFrequencyFilterBank() {
     }
-    
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        minFreq = ps.getDouble(PROP_MIN_FREQ);
-        maxFreq = ps.getDouble(PROP_MAX_FREQ);
-        numberFilters = ps.getInt(PROP_NUMBER_FILTERS);
-    }
 
 
-    /** Initializes this PLPFrequencyFilterBank object */
+    /**
+     * Initializes this PLPFrequencyFilterBank object
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -90,8 +86,6 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
     /**
      * Build a PLP filterbank with the parameters given. The center frequencies of the PLP filters will be uniformly
      * spaced between the minimum and maximum analysis frequencies on the Bark scale. on the Bark scale.
-     *
-     * @throws IllegalArgumentException
      */
     private void buildCriticalBandFilterbank() throws IllegalArgumentException {
         double minBarkFreq;
@@ -112,14 +106,14 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
         }
         if (numberFilters < 1) {
             throw new IllegalArgumentException("Number of filters illegal: "
-                    + numberFilters);
+                + numberFilters);
         }
 
         DFTFrequencies = new double[numberDFTPoints];
         nyquistFreq = sampleRate / 2;
         for (int i = 0; i < numberDFTPoints; i++) {
             DFTFrequencies[i] = i * nyquistFreq /
-                    (numberDFTPoints - 1);
+                (numberDFTPoints - 1);
         }
 
         /**
@@ -131,13 +125,12 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
          * of the lowest and highest PLP filters
          */
 
-
         minBarkFreq = bark.hertzToBark(minFreq);
         maxBarkFreq = bark.hertzToBark(maxFreq);
 
         if (numberFilters < 1) {
             throw new IllegalArgumentException("Number of filters illegal: "
-                    + numberFilters);
+                + numberFilters);
         }
         deltaBarkFreq = (maxBarkFreq - minBarkFreq) / (numberFilters + 1);
 
@@ -154,13 +147,12 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
      * <p>
      * E(w) = f^4 / (f^2 + 1.6e5) ^ 2 * (f^2 + 1.44e6) / (f^2 + 9.61e6)
      * <p>
-     * This is more modern one from HTK, for some reason it's preferred over old variant, and 
+     * This is more modern one from HTK, for some reason it's preferred over old variant, and
      * it doesn't require conversion to radians
      * <p>
      * E(w) = (w^2+56.8e6)*w^4/((w^2+6.3e6)^2(w^2+0.38e9)(w^6+9.58e26))
      * <p>
      * where w is frequency in radians/second
-     * @param freq
      */
     private double loudnessScalingFunction(double freq) {
         double fsq = freq * freq;
@@ -169,7 +161,9 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
     }
 
 
-    /** Create an array of equal loudness preemphasis scaling terms for all the filters */
+    /**
+     * Create an array of equal loudness preemphasis scaling terms for all the filters
+     */
     private void buildEqualLoudnessScalingFactors() {
         double centerFreq;
 
@@ -186,16 +180,14 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
      *
      * @param input input power spectrum
      * @return PLP power spectrum
-     * @throws java.lang.IllegalArgumentException
-     *
      */
     private DoubleData process(DoubleData input) throws
-            IllegalArgumentException {
+        IllegalArgumentException {
 
         double[] in = input.getValues();
 
         if (criticalBandFilter == null ||
-                sampleRate != input.getSampleRate()) {
+            sampleRate != input.getSampleRate()) {
             numberFftPoints = (in.length - 1) << 1;
             sampleRate = input.getSampleRate();
             buildCriticalBandFilterbank();
@@ -203,8 +195,8 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
 
         } else if (in.length != ((numberFftPoints >> 1) + 1)) {
             throw new IllegalArgumentException
-                    ("Window size is incorrect: in.length == " + in.length +
-                            ", numberFftPoints == " + ((numberFftPoints >> 1) + 1));
+                ("Window size is incorrect: in.length == " + in.length +
+                    ", numberFftPoints == " + ((numberFftPoints >> 1) + 1));
         }
 
         double[] outputPLPSpectralArray = new double[numberFilters];
@@ -220,8 +212,8 @@ public class PLPFrequencyFilterBank extends BaseDataProcessor {
         }
 
         DoubleData output = new DoubleData
-                (outputPLPSpectralArray, input.getSampleRate(),
-                        input.getFirstSampleNumber());
+            (outputPLPSpectralArray, input.getSampleRate(),
+                input.getFirstSampleNumber());
 
         return output;
     }

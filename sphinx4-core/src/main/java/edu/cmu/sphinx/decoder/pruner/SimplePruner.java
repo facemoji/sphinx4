@@ -13,20 +13,13 @@
 package edu.cmu.sphinx.decoder.pruner;
 
 import edu.cmu.sphinx.decoder.search.ActiveList;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 
-/** Performs the default pruning behavior which is to invoke the purge on the active list */
+/**
+ * Performs the default pruning behavior which is to invoke the purge on the active list
+ */
 public class SimplePruner implements Pruner {
 
     private String name;
-
-
-    /* (non-Javadoc)
-     * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-     */
-    public void newProperties(PropertySheet ps) throws PropertyException {
-    }
 
 
     public SimplePruner() {
@@ -40,7 +33,9 @@ public class SimplePruner implements Pruner {
     }
 
 
-    /** Starts the pruner */
+    /**
+     * Starts the pruner
+     */
     public void startRecognition() {
     }
 
@@ -55,7 +50,9 @@ public class SimplePruner implements Pruner {
     }
 
 
-    /** Performs post-recognition cleanup. */
+    /**
+     * Performs post-recognition cleanup.
+     */
     public void stopRecognition() {
     }
 

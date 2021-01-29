@@ -1,22 +1,26 @@
 /*
- * 
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ *
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 package edu.cmu.sphinx.decoder.search;
 
 import edu.cmu.sphinx.util.LogMath;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.util.props.S4Boolean;
+import edu.cmu.sphinx.util.props.S4Double;
+import edu.cmu.sphinx.util.props.S4Integer;
 
-/** Creates new active lists. */
-public abstract class ActiveListFactory implements Configurable {
+/**
+ * Creates new active lists.
+ */
+public abstract class ActiveListFactory {
 
 
     /**
@@ -47,26 +51,16 @@ public abstract class ActiveListFactory implements Configurable {
     protected float logRelativeBeamWidth;
 
     /**
-     * 
      * @param absoluteBeamWidth beam for absolute pruning
      * @param relativeBeamWidth beam for relative pruning
      */
-    public ActiveListFactory(int absoluteBeamWidth,double relativeBeamWidth){
+    public ActiveListFactory(int absoluteBeamWidth, double relativeBeamWidth) {
         logMath = LogMath.getLogMath();
         this.absoluteBeamWidth = absoluteBeamWidth;
-        this.logRelativeBeamWidth = logMath.linearToLog(relativeBeamWidth);      
+        this.logRelativeBeamWidth = logMath.linearToLog(relativeBeamWidth);
     }
 
     public ActiveListFactory() {
-    }
-
-
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        logMath = LogMath.getLogMath();
-        absoluteBeamWidth = ps.getInt(PROP_ABSOLUTE_BEAM_WIDTH);
-        double relativeBeamWidth = ps.getDouble(PROP_RELATIVE_BEAM_WIDTH);
-
-        logRelativeBeamWidth = logMath.linearToLog(relativeBeamWidth);
     }
 
 

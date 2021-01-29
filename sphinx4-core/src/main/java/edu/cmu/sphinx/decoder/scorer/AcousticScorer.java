@@ -13,12 +13,10 @@
 package edu.cmu.sphinx.decoder.scorer;
 
 import edu.cmu.sphinx.frontend.Data;
-import edu.cmu.sphinx.util.props.Configurable;
-
 import java.util.List;
 
 /** Provides a mechanism for scoring a set of HMM states */
-public interface AcousticScorer extends Configurable {
+public interface AcousticScorer {
 
     /** Allocates resources for this scorer */
     void allocate();

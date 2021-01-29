@@ -12,17 +12,18 @@
 
 package edu.cmu.sphinx.frontend.feature;
 
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataEndSignal;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DoubleData;
+import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
+import edu.cmu.sphinx.util.props.S4Integer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
-import edu.cmu.sphinx.util.props.S4Integer;
 
 /**
  * Subtracts the mean of all the input so far from the Data objects.
@@ -49,18 +50,22 @@ import edu.cmu.sphinx.util.props.S4Integer;
  * <pre>
  * cmnWindow/(cmnWindow + number of frames since the last recalculation)
  * </pre>
- *
  */
 public class LiveCMN extends BaseDataProcessor {
 
-    private DecimalFormat formatter = new DecimalFormat("0.00;-0.00", new DecimalFormatSymbols(Locale.US));;
+    private DecimalFormat formatter = new DecimalFormat("0.00;-0.00", new DecimalFormatSymbols(Locale.US));
+    ;
 
-    /** The property for the live CMN initial window size. */
+    /**
+     * The property for the live CMN initial window size.
+     */
     @S4Integer(defaultValue = 200)
     public static final String PROP_INITIAL_CMN_WINDOW = "initialCmnWindow";
     private int initialCmnWindow;
 
-    /** The property for the live CMN window size. */
+    /**
+     * The property for the live CMN window size.
+     */
     @S4Integer(defaultValue = 300)
     public static final String PROP_CMN_WINDOW = "cmnWindow";
     private int cmnWindow;
@@ -90,15 +95,9 @@ public class LiveCMN extends BaseDataProcessor {
 
     }
 
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        cmnWindow = ps.getInt(PROP_CMN_WINDOW);
-        cmnShiftWindow = ps.getInt(PROP_CMN_SHIFT_WINDOW);
-        initialCmnWindow = ps.getInt(PROP_INITIAL_CMN_WINDOW);
-    }
-
-    /** Initializes this LiveCMN. */
+    /**
+     * Initializes this LiveCMN.
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -148,9 +147,8 @@ public class LiveCMN extends BaseDataProcessor {
      * class. Signals are returned unmodified.
      *
      * @return the next available Data object, returns null if no Data object is
-     *         available
-     * @throws DataProcessingException
-     *             if there is a data processing error
+     * available
+     * @throws DataProcessingException if there is a data processing error
      */
     @Override
     public Data getData() throws DataProcessingException {
@@ -163,7 +161,7 @@ public class LiveCMN extends BaseDataProcessor {
                 input = getPredecessor().getData();
                 initialList.add(input);
                 if (input instanceof SpeechEndSignal
-                        || input instanceof DataEndSignal)
+                    || input instanceof DataEndSignal)
                     break;
             }
             initMeansSums();
@@ -184,8 +182,7 @@ public class LiveCMN extends BaseDataProcessor {
      * Normalizes the given Data with using the currentMean array. Updates the
      * sum array with the given Data.
      *
-     * @param data
-     *            the Data object to normalize
+     * @param data the Data object to normalize
      */
     private void normalize(Data data) {
 
@@ -196,7 +193,7 @@ public class LiveCMN extends BaseDataProcessor {
 
         if (cepstrum.length != sum.length) {
             throw new Error("Data length (" + cepstrum.length
-                    + ") not equal sum array length (" + sum.length + ')');
+                + ") not equal sum array length (" + sum.length + ')');
         }
 
         // Accumulate cepstrum, avoid counting zero energy in CMN
@@ -217,7 +214,7 @@ public class LiveCMN extends BaseDataProcessor {
             StringBuilder cmn = new StringBuilder();
             // calculate the mean first
             for (int i = 0; i < currentMean.length; i++) {
-                cmn.append (formatter.format(currentMean[i]));
+                cmn.append(formatter.format(currentMean[i]));
                 cmn.append(' ');
             }
             logger.info(cmn.toString());
@@ -250,10 +247,8 @@ public class LiveCMN extends BaseDataProcessor {
     /**
      * Multiplies each element of the given array by the multiplier.
      *
-     * @param array
-     *            the array to multiply
-     * @param multiplier
-     *            the amount to multiply by
+     * @param array the array to multiply
+     * @param multiplier the amount to multiply by
      */
     private static void multiplyArray(double[] array, double multiplier) {
         for (int i = 0; i < array.length; i++) {

@@ -1,60 +1,71 @@
 /*
- * 
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ *
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 package edu.cmu.sphinx.instrumentation;
 
-import edu.cmu.sphinx.frontend.*;
+import edu.cmu.sphinx.decoder.ResultListener;
+import edu.cmu.sphinx.frontend.DataEndSignal;
+import edu.cmu.sphinx.frontend.DataStartSignal;
+import edu.cmu.sphinx.frontend.FrontEnd;
+import edu.cmu.sphinx.frontend.Signal;
+import edu.cmu.sphinx.frontend.SignalListener;
 import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
 import edu.cmu.sphinx.frontend.endpoint.SpeechStartSignal;
 import edu.cmu.sphinx.recognizer.Recognizer;
 import edu.cmu.sphinx.recognizer.Recognizer.State;
 import edu.cmu.sphinx.recognizer.StateListener;
 import edu.cmu.sphinx.result.Result;
-import edu.cmu.sphinx.decoder.ResultListener;
 import edu.cmu.sphinx.util.TimerPool;
-import edu.cmu.sphinx.util.props.*;
-
+import edu.cmu.sphinx.util.props.ConfigurableAdapter;
+import edu.cmu.sphinx.util.props.S4Boolean;
+import edu.cmu.sphinx.util.props.S4Component;
 import java.text.DecimalFormat;
 
-/** Monitors a recognizer for speed */
-public class SpeedTracker
-        extends
-        ConfigurableAdapter
-        implements
-        ResultListener,
-        Resetable,
-        StateListener,
-        SignalListener,
-        Monitor {
+/**
+ * Monitors a recognizer for speed
+ */
+public class SpeedTracker extends ConfigurableAdapter implements ResultListener, StateListener, SignalListener, Monitor {
 
-    /** The property that defines which recognizer to monitor */
+    /**
+     * The property that defines which recognizer to monitor
+     */
     @S4Component(type = Recognizer.class)
     public final static String PROP_RECOGNIZER = "recognizer";
-    /** The property that defines which frontend to monitor */
+    /**
+     * The property that defines which frontend to monitor
+     */
     @S4Component(type = FrontEnd.class)
     public final static String PROP_FRONTEND = "frontend";
-    /** The property that defines whether summary accuracy information is displayed */
+    /**
+     * The property that defines whether summary accuracy information is displayed
+     */
     @S4Boolean(defaultValue = true)
     public final static String PROP_SHOW_SUMMARY = "showSummary";
 
-    /** The property that defines whether detailed accuracy information is displayed */
+    /**
+     * The property that defines whether detailed accuracy information is displayed
+     */
     @S4Boolean(defaultValue = true)
     public final static String PROP_SHOW_DETAILS = "showDetails";
 
-    /** The property that defines whether detailed response information is displayed */
+    /**
+     * The property that defines whether detailed response information is displayed
+     */
     @S4Boolean(defaultValue = false)
     public final static String PROP_SHOW_RESPONSE_TIME = "showResponseTime";
 
-    /** The property that defines whether detailed timer information is displayed */
+    /**
+     * The property that defines whether detailed timer information is displayed
+     */
     @S4Boolean(defaultValue = false)
     public final static String PROP_SHOW_TIMERS = "showTimers";
 
@@ -98,21 +109,6 @@ public class SpeedTracker
     public SpeedTracker() {
     }
 
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        initRecognizer((Recognizer) ps.getComponent(PROP_RECOGNIZER));
-        initFrontEnd((FrontEnd) ps.getComponent(PROP_FRONTEND));
-        showSummary = ps.getBoolean(PROP_SHOW_SUMMARY);
-        showDetails = ps.getBoolean(PROP_SHOW_DETAILS);
-        showResponseTime = ps.getBoolean(PROP_SHOW_RESPONSE_TIME);
-        showTimers = ps.getBoolean(PROP_SHOW_TIMERS);
-    }
-
     private void initFrontEnd(FrontEnd newFrontEnd) {
         if (frontEnd == null) {
             frontEnd = newFrontEnd;
@@ -140,20 +136,20 @@ public class SpeedTracker
 
 
     /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#getName()
-    */
+     * (non-Javadoc)
+     *
+     * @see edu.cmu.sphinx.util.props.Configurable#getName()
+     */
     public String getName() {
         return name;
     }
 
 
     /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.decoder.ResultListener#newResult(edu.cmu.sphinx.result.Result)
-    */
+     * (non-Javadoc)
+     *
+     * @see edu.cmu.sphinx.decoder.ResultListener#newResult(edu.cmu.sphinx.result.Result)
+     */
     public void newResult(Result result) {
         if (result.isFinal()) {
             processingTime = (getTime() - startTime) / 1000.0f;
@@ -166,32 +162,36 @@ public class SpeedTracker
     }
 
 
-    /** Shows the audio usage data */
+    /**
+     * Shows the audio usage data
+     */
     protected void showAudioUsage() {
         logger.info("   This  Time Audio: " + timeFormat.format(audioTime)
-                + "s"
-                + "  Proc: " + timeFormat.format(processingTime) + "s"
-                + "  Speed: " + timeFormat.format(getSpeed())
-                + " X real time");
+            + "s"
+            + "  Proc: " + timeFormat.format(processingTime) + "s"
+            + "  Speed: " + timeFormat.format(getSpeed())
+            + " X real time");
         showAudioSummary();
     }
 
 
-    /** Shows the audio summary data */
+    /**
+     * Shows the audio summary data
+     */
     protected void showAudioSummary() {
         logger.info("   Total Time Audio: "
-                + timeFormat.format(totalAudioTime) + "s"
-                + "  Proc: " + timeFormat.format(totalProcessingTime)
-                + "s "
-                + timeFormat.format(getCumulativeSpeed()) + " X real time");
+            + timeFormat.format(totalAudioTime) + "s"
+            + "  Proc: " + timeFormat.format(totalProcessingTime)
+            + "s "
+            + timeFormat.format(getCumulativeSpeed()) + " X real time");
 
         if (showResponseTime) {
             float avgResponseTime =
-                    (float) totalResponseTime / (numUtteranceStart * 1000);
+                (float) totalResponseTime / (numUtteranceStart * 1000);
             logger.info
-                    ("   Response Time:  Avg: " + avgResponseTime + 's' +
-                            "  Max: " + ((float) maxResponseTime / 1000) +
-                            "s  Min: " + ((float) minResponseTime / 1000) + 's');
+                ("   Response Time:  Avg: " + avgResponseTime + 's' +
+                    "  Max: " + ((float) maxResponseTime / 1000) +
+                    "s  Min: " + ((float) minResponseTime / 1000) + 's');
         }
     }
 
@@ -210,7 +210,9 @@ public class SpeedTracker
     }
 
 
-    /** Resets the speed statistics */
+    /**
+     * Resets the speed statistics
+     */
     public void reset() {
         totalProcessingTime = 0;
         totalAudioTime = 0;
@@ -233,12 +235,12 @@ public class SpeedTracker
 
 
     /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.frontend.SignalListener#signalOccurred(edu.cmu.sphinx.frontend.Signal)
-    */
+     * (non-Javadoc)
+     *
+     * @see edu.cmu.sphinx.frontend.SignalListener#signalOccurred(edu.cmu.sphinx.frontend.Signal)
+     */
     public void signalOccurred(Signal signal) {
-         if (signal instanceof SpeechStartSignal || signal instanceof DataStartSignal) {
+        if (signal instanceof SpeechStartSignal || signal instanceof DataStartSignal) {
             startTime = getTime();
             audioStartTime = signal.getTime();
             long responseTime = startTime - audioStartTime;

@@ -1,10 +1,5 @@
 package edu.cmu.sphinx.linguist.allphone;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import edu.cmu.sphinx.linguist.Linguist;
 import edu.cmu.sphinx.linguist.SearchGraph;
 import edu.cmu.sphinx.linguist.acoustic.AcousticModel;
@@ -14,16 +9,19 @@ import edu.cmu.sphinx.linguist.acoustic.Unit;
 import edu.cmu.sphinx.linguist.acoustic.UnitManager;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.SenoneHMM;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.SenoneSequence;
-import edu.cmu.sphinx.util.LogMath;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Boolean;
 import edu.cmu.sphinx.util.props.S4Component;
 import edu.cmu.sphinx.util.props.S4Double;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class AllphoneLinguist implements Linguist {
 
-    /** The property that defines the acoustic model to use when building the search graph */
+    /**
+     * The property that defines the acoustic model to use when building the search graph
+     */
     @S4Component(type = AcousticModel.class)
     public final static String PROP_ACOUSTIC_MODEL = "acousticModel";
 
@@ -60,16 +58,6 @@ public class AllphoneLinguist implements Linguist {
         this.acousticModel = acousticModel;
         this.phoneInsertionProbability = phoneInsertionProbability;
         this.useContextDependentPhones = useContextDependentPhones;
-    }
-
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        acousticModel = (AcousticModel) ps.getComponent(PROP_ACOUSTIC_MODEL);
-        phoneInsertionProbability = LogMath.getLogMath().linearToLog(ps.getFloat(PROP_PIP));
-
-        useContextDependentPhones = ps.getBoolean(PROP_CD);
-        if (allocated) {
-            createSuccessors(useContextDependentPhones);
-        }
     }
 
     public SearchGraph getSearchGraph() {
@@ -136,7 +124,7 @@ public class AllphoneLinguist implements Linguist {
             HMM hmm = hmmIter.next();
             if (!hmm.getUnit().isContextDependent()) {
                 ArrayList<Unit> sameSenonesUnits;
-                SenoneSequence senoneSeq = ((SenoneHMM)hmm).getSenoneSequence();
+                SenoneSequence senoneSeq = ((SenoneHMM) hmm).getSenoneSequence();
                 if ((sameSenonesUnits = senonesToUnits.get(senoneSeq)) == null) {
                     sameSenonesUnits = new ArrayList<>();
                     senonesToUnits.put(senoneSeq, sameSenonesUnits);
@@ -156,7 +144,7 @@ public class AllphoneLinguist implements Linguist {
         while (hmmIter.hasNext()) {
             HMM hmm = hmmIter.next();
             ArrayList<Unit> sameSenonesUnits;
-            SenoneSequence senoneSeq = ((SenoneHMM)hmm).getSenoneSequence();
+            SenoneSequence senoneSeq = ((SenoneHMM) hmm).getSenoneSequence();
             if ((sameSenonesUnits = senonesToUnits.get(senoneSeq)) == null) {
                 sameSenonesUnits = new ArrayList<>();
                 senonesToUnits.put(senoneSeq, sameSenonesUnits);
@@ -167,7 +155,7 @@ public class AllphoneLinguist implements Linguist {
                 continue;
             }
             if (hmm.getUnit().isContextDependent()) {
-                LeftRightContext context = (LeftRightContext)hmm.getUnit().getContext();
+                LeftRightContext context = (LeftRightContext) hmm.getUnit().getContext();
                 Unit lc = context.getLeftContext()[0];
                 if (lc == UnitManager.SILENCE) {
                     leftContextSilHMMs.add(hmm);

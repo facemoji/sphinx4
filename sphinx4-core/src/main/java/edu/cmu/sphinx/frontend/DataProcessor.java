@@ -12,7 +12,6 @@
  */
 package edu.cmu.sphinx.frontend;
 
-import edu.cmu.sphinx.util.props.Configurable;
 import java.util.List;
 
 /**
@@ -33,7 +32,7 @@ import java.util.List;
  * Calling {@link #getData() getData}will return the
  * processed Data object.
  */
-public interface DataProcessor extends Configurable {
+public interface DataProcessor {
 
     static List<DataProcessor> chainProcessors(List<DataProcessor> dataProcessors) {
         for (int i = 1; i < dataProcessors.size(); i++) {
@@ -47,7 +46,7 @@ public interface DataProcessor extends Configurable {
      *
      * This is typically called after the DataProcessor has been configured.
      */
-    public void initialize();
+    void initialize();
 
 
     /**
@@ -56,7 +55,7 @@ public interface DataProcessor extends Configurable {
      * @return an Data object that has been processed by this DataProcessor
      * @throws DataProcessingException if a data processor error occurs
      */
-    public abstract Data getData() throws DataProcessingException;
+    Data getData() throws DataProcessingException;
 
 
     /**
@@ -64,7 +63,7 @@ public interface DataProcessor extends Configurable {
      *
      * @return the predecessor
      */
-    public DataProcessor getPredecessor();
+    DataProcessor getPredecessor();
 
 
     /**
@@ -72,5 +71,5 @@ public interface DataProcessor extends Configurable {
      *
      * @param predecessor the new predecessor of this DataProcessor
      */
-    public void setPredecessor(DataProcessor predecessor);
+    void setPredecessor(DataProcessor predecessor);
 }

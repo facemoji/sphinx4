@@ -1,9 +1,6 @@
 package edu.cmu.sphinx.frontend;
 
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Double;
-
 import java.util.LinkedList;
 
 /**
@@ -12,7 +9,9 @@ import java.util.LinkedList;
  */
 public class DataBlocker extends BaseDataProcessor {
 
-    /** The property for the block size of generated data-blocks in milliseconds. */
+    /**
+     * The property for the block size of generated data-blocks in milliseconds.
+     */
     @S4Double(defaultValue = 10)
     public static final String PROP_BLOCK_SIZE_MS = "blockSizeMs";
 
@@ -38,12 +37,6 @@ public class DataBlocker extends BaseDataProcessor {
         this.blockSizeMs = blockSizeMs;
     }
 
-    @Override
-    public void newProperties(PropertySheet propertySheet) throws PropertyException {
-        super.newProperties(propertySheet);
-        blockSizeMs = propertySheet.getDouble(PROP_BLOCK_SIZE_MS);
-    }
-
 
     public double getBlockSizeMs() {
         return blockSizeMs;
@@ -61,7 +54,7 @@ public class DataBlocker extends BaseDataProcessor {
 
                 curInBufferSize = 0;
                 curFirstSamplePos = 0;
-                
+
                 inBuffer.clear();
             }
 

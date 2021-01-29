@@ -13,38 +13,37 @@
 package edu.cmu.sphinx.decoder.search;
 
 import edu.cmu.sphinx.result.Result;
-import edu.cmu.sphinx.util.props.Configurable;
 
 /**
  * Defines the interface for the SearchManager. The SearchManager's primary role is to execute the search for a given
  * number of frames. The SearchManager will return interim results as the recognition proceeds and when recognition
  * completes a final result will be returned.
  */
-public interface SearchManager extends Configurable {
+public interface SearchManager {
 
     /**
      * Allocates the resources necessary for this search. This should be called once before an recognitions are
      * performed
      */
-    public void allocate();
+    void allocate();
 
 
     /**
      * Deallocates resources necessary for this search. This should be called once after all recognitions are completed
      * at the search manager is no longer needed.
      */
-    public void deallocate();
+    void deallocate();
 
 
     /**
      * Prepares the SearchManager for recognition.  This method must be called before <code> recognize </code> is
      * called. Typically, <code> start </code>  and <code> stop </code>  are called bracketing an utterance.
      */
-    public void startRecognition();
+    void startRecognition();
 
 
     /** Performs post-recognition cleanup. This method should be called after recognize returns a final result. */
-    public void stopRecognition();
+    void stopRecognition();
 
 
     /**
@@ -58,7 +57,7 @@ public interface SearchManager extends Configurable {
      * @return the recognition result, the result may be a partial or a final result; or return null if no frames are
      *         arrived
      */
-    public Result recognize(int nFrames);
+    Result recognize(int nFrames);
 }
 
 

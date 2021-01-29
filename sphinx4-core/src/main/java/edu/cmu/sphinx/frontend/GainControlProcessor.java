@@ -1,7 +1,5 @@
 package edu.cmu.sphinx.frontend;
 
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Double;
 
 /**
@@ -22,18 +20,7 @@ public class GainControlProcessor extends BaseDataProcessor {
         this.gainFactor = gainFactor;
     }
 
-    public GainControlProcessor() {        
-    }
-
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        gainFactor = ps.getDouble(GAIN_FACTOR);
+    public GainControlProcessor() {
     }
 
 

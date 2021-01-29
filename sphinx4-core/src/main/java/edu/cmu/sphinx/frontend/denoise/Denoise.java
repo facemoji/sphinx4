@@ -14,8 +14,6 @@ import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DataStartSignal;
 import edu.cmu.sphinx.frontend.DoubleData;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Double;
 import edu.cmu.sphinx.util.props.S4Integer;
 import java.util.Arrays;
@@ -32,7 +30,6 @@ import java.util.Arrays;
  * For the recent research and state of art see papers about IMRCA and A
  * Minimum-Mean-Square-Error Noise Reduction Algorithm On Mel-Frequency Cepstra
  * For Robust Speech Recognition by Dong Yu and others
- *
  */
 public class Denoise extends BaseDataProcessor {
 
@@ -91,25 +88,6 @@ public class Denoise extends BaseDataProcessor {
 
     public static Denoise withDefaults() {
         return new Denoise();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util
-     * .props.PropertySheet)
-     */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        lambdaPower = ps.getDouble(LAMBDA_POWER);
-        lambdaA = ps.getDouble(LAMBDA_A);
-        lambdaB = ps.getDouble(LAMBDA_B);
-        lambdaT = ps.getDouble(LAMBDA_T);
-        muT = ps.getDouble(MU_T);
-        maxGain = ps.getDouble(MAX_GAIN);
-        smoothWindow = ps.getInt(SMOOTH_WINDOW);
     }
 
     @Override

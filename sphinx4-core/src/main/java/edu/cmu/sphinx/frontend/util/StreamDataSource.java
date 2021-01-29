@@ -20,8 +20,6 @@ import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DataStartSignal;
 import edu.cmu.sphinx.frontend.DoubleData;
 import edu.cmu.sphinx.util.TimeFrame;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Boolean;
 import edu.cmu.sphinx.util.props.S4Integer;
 import java.io.IOException;
@@ -46,7 +44,9 @@ import java.io.InputStream;
  */
 public class StreamDataSource extends BaseDataProcessor {
 
-    /** The property for the sample rate. */
+    /**
+     * The property for the sample rate.
+     */
     @S4Integer(defaultValue = 16000)
     public static final String PROP_SAMPLE_RATE = "sampleRate";
 
@@ -57,15 +57,21 @@ public class StreamDataSource extends BaseDataProcessor {
     @S4Integer(defaultValue = 3200)
     public static final String PROP_BYTES_PER_READ = "bytesPerRead";
 
-    /** The property for the number of bits per value. */
+    /**
+     * The property for the number of bits per value.
+     */
     @S4Integer(defaultValue = 16)
     public static final String PROP_BITS_PER_SAMPLE = "bitsPerSample";
 
-    /** The property specifying whether the input data is big-endian. */
+    /**
+     * The property specifying whether the input data is big-endian.
+     */
     @S4Boolean(defaultValue = false)
     public static final String PROP_BIG_ENDIAN_DATA = "bigEndianData";
 
-    /** The property specifying whether the input data is signed. */
+    /**
+     * The property specifying whether the input data is signed.
+     */
     @S4Boolean(defaultValue = true)
     public static final String PROP_SIGNED_DATA = "signedData";
 
@@ -84,7 +90,7 @@ public class StreamDataSource extends BaseDataProcessor {
     private TimeFrame timeFrame = TimeFrame.INFINITE;
 
     public StreamDataSource(int sampleRate, int bytesPerRead,
-            int bitsPerSample, boolean bigEndian, boolean signedData) {
+        int bitsPerSample, boolean bigEndian, boolean signedData) {
         initLogger();
         init(sampleRate, bytesPerRead, bitsPerSample, bigEndian, signedData);
     }
@@ -93,35 +99,18 @@ public class StreamDataSource extends BaseDataProcessor {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * @see
-     * edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.
-     * util.props.PropertySheet)
-     */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        init(
-             ps.getInt(PROP_SAMPLE_RATE),
-             ps.getInt(PROP_BYTES_PER_READ),
-             ps.getInt(PROP_BITS_PER_SAMPLE),
-             ps.getBoolean(PROP_BIG_ENDIAN_DATA),
-             ps.getBoolean(PROP_SIGNED_DATA));
-    }
-
     private void init(int sampleRate,
-                      int bytesPerRead,
-                      int bitsPerSample,
-                      boolean bigEndian,
-                      boolean signedData) {
+        int bytesPerRead,
+        int bitsPerSample,
+        boolean bigEndian,
+        boolean signedData) {
         this.sampleRate = sampleRate;
         this.bytesPerRead = bytesPerRead;
         this.bitsPerSample = bitsPerSample;
 
         if (this.bitsPerSample % 8 != 0)
             throw new IllegalArgumentException(
-                                               "bits per sample must be a multiple of 8");
+                "bits per sample must be a multiple of 8");
 
         this.bytesPerValue = bitsPerSample / 8;
         this.bigEndian = bigEndian;
@@ -150,6 +139,7 @@ public class StreamDataSource extends BaseDataProcessor {
 
     /**
      * Sets the InputStream from which this StreamDataSource reads.
+     *
      * @param inputStream the InputStream from which audio data comes
      * @param timeFrame time frame to process
      */
@@ -191,7 +181,7 @@ public class StreamDataSource extends BaseDataProcessor {
                     } while (output != null && getDuration() < timeFrame.getStart());
 
                     if ((output == null || getDuration() > timeFrame.getEnd())
-                            && !utteranceEndSent) {
+                        && !utteranceEndSent) {
                         output = new DataEndSignal(getDuration());
                         utteranceEndSent = true;
                         streamEndReached = true;
@@ -213,7 +203,6 @@ public class StreamDataSource extends BaseDataProcessor {
      * available
      *
      * @return a Data or null
-     * @throws edu.cmu.sphinx.frontend.DataProcessingException
      */
     private DoubleData readNextFrame() throws DataProcessingException {
         // read one frame's worth of bytes
@@ -225,7 +214,7 @@ public class StreamDataSource extends BaseDataProcessor {
         try {
             do {
                 read = dataStream.read(samplesBuffer, totalRead, bytesToRead
-                        - totalRead);
+                    - totalRead);
                 if (read > 0) {
                     totalRead += read;
                 }
@@ -238,12 +227,12 @@ public class StreamDataSource extends BaseDataProcessor {
             totalValuesRead += (totalRead / bytesPerValue);
             if (totalRead < bytesToRead) {
                 totalRead = (totalRead % 2 == 0)
-                        ? totalRead + 2
-                        : totalRead + 3;
+                    ? totalRead + 2
+                    : totalRead + 3;
                 byte[] shrinkedBuffer = new byte[totalRead];
                 System
-                        .arraycopy(samplesBuffer, 0, shrinkedBuffer, 0,
-                                   totalRead);
+                    .arraycopy(samplesBuffer, 0, shrinkedBuffer, 0,
+                        totalRead);
                 samplesBuffer = shrinkedBuffer;
                 closeDataStream();
             }
@@ -254,13 +243,13 @@ public class StreamDataSource extends BaseDataProcessor {
         double[] doubleData;
         if (bigEndian) {
             doubleData = DataUtil.bytesToValues(samplesBuffer, 0, totalRead,
-                                                bytesPerValue, signedData);
+                bytesPerValue, signedData);
         } else {
             doubleData = DataUtil.littleEndianBytesToValues(samplesBuffer,
-                                                            0,
-                                                            totalRead,
-                                                            bytesPerValue,
-                                                            signedData);
+                0,
+                totalRead,
+                bytesPerValue,
+                signedData);
         }
         return new DoubleData(doubleData, sampleRate, firstSample);
     }

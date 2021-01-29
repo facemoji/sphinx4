@@ -13,15 +13,12 @@
 
 package edu.cmu.sphinx.frontend;
 
+import edu.cmu.sphinx.util.Timer;
+import edu.cmu.sphinx.util.TimerPool;
+import edu.cmu.sphinx.util.props.S4ComponentList;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import edu.cmu.sphinx.util.Timer;
-import edu.cmu.sphinx.util.TimerPool;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
-import edu.cmu.sphinx.util.props.S4ComponentList;
 
 /**
  * FrontEnd is a wrapper class for the chain of front end processors. It provides methods for manipulating and
@@ -116,17 +113,13 @@ import edu.cmu.sphinx.util.props.S4ComponentList;
  *     &lt;property name="frontend" value="mfcFrontEnd"/&gt;
  * &lt;/component&gt;
  * </pre>
- * In the SimpleAcousticScorer, the front end is obtained in the {@link edu.cmu.sphinx.util.props.Configurable#newProperties
- * newProperties} method as follows:
- * <pre>
- * public void newProperties(PropertySheet ps) throws PropertyException {
- *     FrontEnd frontend = (FrontEnd) ps.getComponent("frontend", FrontEnd.class);
- * }
- * </pre>
+ *
  */
 public class FrontEnd extends BaseDataProcessor {
 
-    /** the name of the property list of all the components of the frontend pipe line */
+    /**
+     * the name of the property list of all the components of the frontend pipe line
+     */
     @S4ComponentList(type = DataProcessor.class)
     public final static String PROP_PIPELINE = "pipeline";
 
@@ -153,16 +146,6 @@ public class FrontEnd extends BaseDataProcessor {
 
     }
 
-    /* (non-Javadoc)
-     * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-     */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        List<DataProcessor> newFeList = ps.getComponentList(PROP_PIPELINE, DataProcessor.class);
-        init(newFeList);
-    }
-
     private void init(List<DataProcessor> frontEndList) {
         this.timer = TimerPool.getTimer(this, "Frontend");
         this.frontEndList = DataProcessor.chainProcessors(frontEndList);
@@ -173,8 +156,8 @@ public class FrontEnd extends BaseDataProcessor {
 
 
     /* (non-Javadoc)
-    * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
-    */
+     * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -195,7 +178,9 @@ public class FrontEnd extends BaseDataProcessor {
     }
 
 
-    /** Returns the collection of <code>DataProcessor</code>s of this <code>FrontEnd</code>.
+    /**
+     * Returns the collection of <code>DataProcessor</code>s of this <code>FrontEnd</code>.
+     *
      * @return list of processors
      */
     public List<DataProcessor> getElements() {
@@ -264,7 +249,9 @@ public class FrontEnd extends BaseDataProcessor {
     }
 
 
-    /** Returns the last data processor within the <code>DataProcessor</code> chain of this <code>FrontEnd</code>.
+    /**
+     * Returns the last data processor within the <code>DataProcessor</code> chain of this <code>FrontEnd</code>.
+     *
      * @return last processor
      */
     public DataProcessor getLastDataProcessor() {

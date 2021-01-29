@@ -15,8 +15,6 @@ import edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform;
 import edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform2;
 import edu.cmu.sphinx.frontend.transform.Lifter;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.Loader;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Component;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,8 +36,8 @@ import java.util.Properties;
  * MelFrequencyFilterBank parameters (numberFilters, minimumFrequency and
  * maximumFrequency) are auto-configured based on the values found in
  * feat.params.
- *<br>
- *   Creates a chain of following {@link DataProcessor DataProcessors}
+ * <br>
+ * Creates a chain of following {@link DataProcessor DataProcessors}
  *
  * <h3>filterBank</h3>
  * The filter bank which will be used for creating the cepstrum. The filter
@@ -98,24 +96,6 @@ public class AutoCepstrum extends BaseDataProcessor {
     }
 
     public AutoCepstrum() {
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see
-     * edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util
-     * .props.PropertySheet)
-     */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        loader = (Loader) ps.getComponent(PROP_LOADER);
-        try {
-            loader.load();
-        } catch (IOException e) {
-            throw new PropertyException(e);
-        }
-        initDataProcessors();
     }
 
     private void initDataProcessors() {
@@ -199,7 +179,7 @@ public class AutoCepstrum extends BaseDataProcessor {
     @Override
     public String toString() {
         StringBuilder description = new StringBuilder(super.toString())
-                .append(" {");
+            .append(" {");
         for (DataProcessor dp : selectedDataProcessors)
             description.append(dp).append(", ");
         description.setLength(description.length() - 2);

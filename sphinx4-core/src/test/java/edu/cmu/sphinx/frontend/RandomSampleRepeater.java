@@ -1,23 +1,12 @@
 package edu.cmu.sphinx.frontend;
 
-import java.util.Random;
-import java.util.logging.Logger;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import edu.cmu.sphinx.frontend.BaseDataProcessor;
-import edu.cmu.sphinx.frontend.Data;
-import edu.cmu.sphinx.frontend.DataProcessingException;
-import edu.cmu.sphinx.frontend.DataStartSignal;
-import edu.cmu.sphinx.frontend.DoubleData;
-import edu.cmu.sphinx.frontend.FloatData;
-import edu.cmu.sphinx.util.props.ConfigurationManager;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Boolean;
 import edu.cmu.sphinx.util.props.S4Double;
 import edu.cmu.sphinx.util.props.S4Integer;
+import java.util.Random;
+import java.util.logging.Logger;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * A DataProcessor which inserts short speech snippets with variable length into a speech stream. The snippets are takes
@@ -34,7 +23,9 @@ import edu.cmu.sphinx.util.props.S4Integer;
  */
 public class RandomSampleRepeater extends BaseDataProcessor {
 
-    /** The maximal value which could be added to the signal */
+    /**
+     * The maximal value which could be added to the signal
+     */
     @S4Boolean(defaultValue = false)
     public static final String PROP_RAND_STREAM_START = "forceRandStreamStart";
     private boolean randStreamStart;
@@ -69,13 +60,17 @@ public class RandomSampleRepeater extends BaseDataProcessor {
     private boolean useRandSeed;
 
 
-    /** The property for the sample rate. */
+    /**
+     * The property for the sample rate.
+     */
     @S4Integer(defaultValue = 16000)
     public static final String PROP_SAMPLE_RATE = "sampleRate";
     private int sampleRate;
 
 
-    /** The random generator used to compute the insertion points. */
+    /**
+     * The random generator used to compute the insertion points.
+     */
     private Random r;
     private Logger logger;
 
@@ -84,10 +79,10 @@ public class RandomSampleRepeater extends BaseDataProcessor {
 
 
     /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
-    */
+     * (non-Javadoc)
+     *
+     * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -125,8 +120,7 @@ public class RandomSampleRepeater extends BaseDataProcessor {
      * Returns the next DoubleData object, which is a dithered version of the input
      *
      * @return the next available DoubleData object, or null if no Data is available
-     * @throws edu.cmu.sphinx.frontend.DataProcessingException
-     *          if a data processing error occurred
+     * @throws edu.cmu.sphinx.frontend.DataProcessingException if a data processing error occurred
      */
     @Override
     public Data getData() throws DataProcessingException {
@@ -172,7 +166,6 @@ public class RandomSampleRepeater extends BaseDataProcessor {
             // make sure that after insertion the block-length does not exceed 160 samples because with more SpeechClassifierNT will fail
             assert doubleData.getValues().length + insertLength <= 160 : "block too large for next SpeechClassifier";
 
-
             extFeatures = new double[insertLength + inFeatures.length];
 
             logger.fine("RSR: repeat snippet with length " + insertLength + " at position " + nextInsertionPoint);
@@ -189,37 +182,16 @@ public class RandomSampleRepeater extends BaseDataProcessor {
             extFeatures = inFeatures;
         }
 
-
         DoubleData extendedData = new DoubleData(extFeatures, doubleData.getSampleRate(),
-                firstSampleNumber);
+            firstSampleNumber);
 
         return extendedData;
     }
 
 
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-
-        logger = ps.getLogger();
-        maxRepeatedMs = ps.getDouble(RandomSampleRepeater.PROP_MAX_REAPTED_MS);
-        uDistWidthSec = ps.getDouble(RandomSampleRepeater.PROP_UNIFORM_DIST_WIDTH);
-        useRandSeed = ps.getBoolean(RandomSampleRepeater.PROP_USE_RANDSEED);
-        randStreamStart = ps.getBoolean(RandomSampleRepeater.PROP_RAND_STREAM_START);
-        sampleRate = ps.getInt(RandomSampleRepeater.PROP_SAMPLE_RATE);
-
-        initialize();
-    }
-
-
     @Test
     public void testInsertAtZero() {
-        RandomSampleRepeater rsr = ConfigurationManager.getInstance(RandomSampleRepeater.class);
+        RandomSampleRepeater rsr = new RandomSampleRepeater();
         rsr.randStreamStart = true;
         rsr.useRandSeed = false;
 
@@ -246,7 +218,7 @@ public class RandomSampleRepeater extends BaseDataProcessor {
 
     @Test
     public void testInsertAt4() {
-        RandomSampleRepeater rsr = ConfigurationManager.getInstance(RandomSampleRepeater.class);
+        RandomSampleRepeater rsr = new RandomSampleRepeater();
         rsr.randStreamStart = true;
         rsr.useRandSeed = false;
 
@@ -273,7 +245,7 @@ public class RandomSampleRepeater extends BaseDataProcessor {
 
     @Test
     public void testInsertAtBlockEnd() {
-        RandomSampleRepeater rsr = ConfigurationManager.getInstance(RandomSampleRepeater.class);
+        RandomSampleRepeater rsr = new RandomSampleRepeater();
         rsr.randStreamStart = true;
         rsr.useRandSeed = false;
 

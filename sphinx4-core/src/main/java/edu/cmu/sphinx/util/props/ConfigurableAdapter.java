@@ -8,42 +8,40 @@ import java.util.logging.Logger;
  *
  * @author Holger Brandl
  */
-public abstract class ConfigurableAdapter implements Configurable {
+public abstract class ConfigurableAdapter {
 
-    private String name;
-    protected Logger logger;
+  private String name;
+  protected Logger logger;
 
-    public ConfigurableAdapter() {
-    }
+  public ConfigurableAdapter() {
+  }
 
-    protected void initLogger() {
-        this.name = getClass().getSimpleName();
-        init( name , Logger.getLogger( name ) );
-    }
+  protected void initLogger() {
+    this.name = getClass().getSimpleName();
+    init(name, Logger.getLogger(name));
+  }
 
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        init( ps.getInstanceName(), ps.getLogger());
-    }
+  private void init(String name, Logger logger) {
+    this.name = name;
+    this.logger = logger;
+  }
 
-    private void init(String name, Logger logger) {
-        this.name = name;
-        this.logger = logger;
-    }
-
-    /** @return the configuration name this {@code Configurable}. */
-    public String getName() {
-        // fix null names
-        return name != null ? name : getClass().getSimpleName();
-    }
+  /**
+   * @return the configuration name this {@code Configurable}.
+   */
+  public String getName() {
+    // fix null names
+    return name != null ? name : getClass().getSimpleName();
+  }
 
 
-    /**
-     * Returns the name of this BaseDataProcessor.
-     *
-     * @return the name of this BaseDataProcessor
-     */
-    @Override
-    public String toString() {
-        return getName();
-    }
+  /**
+   * Returns the name of this BaseDataProcessor.
+   *
+   * @return the name of this BaseDataProcessor
+   */
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

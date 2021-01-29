@@ -1,19 +1,23 @@
 /*
- * Copyright 1999-2004 Carnegie Mellon University.  
- * Portions Copyright 2002-2004 Sun Microsystems, Inc.  
+ * Copyright 1999-2004 Carnegie Mellon University.
+ * Portions Copyright 2002-2004 Sun Microsystems, Inc.
  * Portions Copyright 2002-2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 package edu.cmu.sphinx.frontend.filter;
 
-import edu.cmu.sphinx.frontend.*;
-import edu.cmu.sphinx.frontend.endpoint.*;
-import edu.cmu.sphinx.util.props.*;
+import edu.cmu.sphinx.frontend.BaseDataProcessor;
+import edu.cmu.sphinx.frontend.Data;
+import edu.cmu.sphinx.frontend.DataEndSignal;
+import edu.cmu.sphinx.frontend.DataProcessingException;
+import edu.cmu.sphinx.frontend.DoubleData;
+import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
+import edu.cmu.sphinx.util.props.S4Double;
 
 /**
  * Implements a high-pass filter that compensates for attenuation in the audio data. Speech signals have an attenuation
@@ -40,32 +44,22 @@ import edu.cmu.sphinx.util.props.*;
  */
 public class Preemphasizer extends BaseDataProcessor {
 
-    /** The property for preemphasis factor/alpha. */
+    /**
+     * The property for preemphasis factor/alpha.
+     */
     @S4Double(defaultValue = 0.97)
     public static final String PROP_PREEMPHASIS_FACTOR = "factor";
 
     private double preemphasisFactor;
     private double prior;
 
-    public Preemphasizer( double preemphasisFactor ) {
+    public Preemphasizer(double preemphasisFactor) {
         initLogger();
         this.preemphasisFactor = preemphasisFactor;
     }
 
-    public Preemphasizer( ) {
+    public Preemphasizer() {
 
-    }
-
-
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        preemphasisFactor = ps.getDouble(PROP_PREEMPHASIS_FACTOR);
     }
 
 

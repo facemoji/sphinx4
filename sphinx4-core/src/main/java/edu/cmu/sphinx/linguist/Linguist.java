@@ -1,20 +1,18 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
 
 package edu.cmu.sphinx.linguist;
 
-import edu.cmu.sphinx.util.props.Configurable;
 import edu.cmu.sphinx.util.props.S4Double;
-
 import java.io.IOException;
 
 /**
@@ -28,7 +26,7 @@ import java.io.IOException;
  * calls to <code>SearchState.getSuccessors().</code>. There are a number of search state subinterfaces that are used to
  * indicate different types of states in the search space:
  * <ul> <li><b>WordSearchState </b>- represents a word in the search space. <li><b>UnitSearchState </b>- represents a
- * unit in the search space <li><b>HMMSearchState </b> represents an HMM state in the search space 
+ * unit in the search space <li><b>HMMSearchState </b> represents an HMM state in the search space
  * </ul>
  * A linguist has a great deal of latitude about the order in which it returns states. For instance a 'flat' linguist
  * may return a WordState at the beginning of a word, while a 'tree' linguist may return WordStates at the ending of a
@@ -46,7 +44,7 @@ import java.io.IOException;
  * very efficient implementations of <code>equals</code> and <code>hashCode</code>. This will allow a SearchManager to
  * maintain collections of states in HashMaps efficiently.
  * <p>
- * The lifecycle of a linguist is as follows: 
+ * The lifecycle of a linguist is as follows:
  * <ul>
  * <li> The linguist is created by the configuration manager
  * <li> The linguist is given an opportunity to register its properties via a call to its <code>register</code> method.
@@ -75,27 +73,22 @@ import java.io.IOException;
  * multi-threaded environments.
  * </ul>
  */
-public interface Linguist extends Configurable {
+public interface Linguist {
 
     /** Word insertion probability property */
-    @S4Double(defaultValue = 1.0)
-    public final static String PROP_WORD_INSERTION_PROBABILITY = "wordInsertionProbability";
+    @S4Double(defaultValue = 1.0) String PROP_WORD_INSERTION_PROBABILITY = "wordInsertionProbability";
 
     /** Unit insertion probability property */
-    @S4Double(defaultValue = 1.0)
-    public final static String PROP_UNIT_INSERTION_PROBABILITY = "unitInsertionProbability";
+    @S4Double(defaultValue = 1.0) String PROP_UNIT_INSERTION_PROBABILITY = "unitInsertionProbability";
 
     /** Silence insertion probability property */
-    @S4Double(defaultValue = 1.0)
-    public final static String PROP_SILENCE_INSERTION_PROBABILITY = "silenceInsertionProbability";
+    @S4Double(defaultValue = 1.0) String PROP_SILENCE_INSERTION_PROBABILITY = "silenceInsertionProbability";
 
     /** Filler insertion probability property */
-    @S4Double(defaultValue = 1.0)
-    public final static String PROP_FILLER_INSERTION_PROBABILITY = "fillerInsertionProbability";
+    @S4Double(defaultValue = 1.0) String PROP_FILLER_INSERTION_PROBABILITY = "fillerInsertionProbability";
 
     /** The property that defines the language weight for the search */
-    @S4Double(defaultValue = 1.0)
-    public final static String PROP_LANGUAGE_WEIGHT = "languageWeight";
+    @S4Double(defaultValue = 1.0) String PROP_LANGUAGE_WEIGHT = "languageWeight";
 
 
     /**
@@ -105,7 +98,7 @@ public interface Linguist extends Configurable {
      *
      * @return the search graph
      */
-    public SearchGraph getSearchGraph();
+    SearchGraph getSearchGraph();
 
 
     /**
@@ -118,7 +111,7 @@ public interface Linguist extends Configurable {
      * shared by multiple simulataneous searches. Reliance on a 'startRecognition' may prevent a linguist from being
      * used in a multi-threaded search.
      */
-    public void startRecognition();
+    void startRecognition();
 
 
     /**
@@ -131,7 +124,7 @@ public interface Linguist extends Configurable {
      * multiple simulataneous searches. Reliance on a 'stopRecognition' may prevent a linguist from being used in a
      * multi-threaded search.
      */
-    public void stopRecognition();
+    void stopRecognition();
 
 
     /**
@@ -143,7 +136,7 @@ public interface Linguist extends Configurable {
      *
      * @throws IOException if an IO error occurs
      */
-    public void allocate() throws IOException;
+    void allocate() throws IOException;
 
 
     /**
@@ -159,6 +152,6 @@ public interface Linguist extends Configurable {
      *
      * @throws IOException if an IO error occurs
      */
-    public void deallocate() throws IOException;
+    void deallocate() throws IOException;
 }
 

@@ -17,8 +17,6 @@ import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DoubleData;
 import edu.cmu.sphinx.util.Complex;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import edu.cmu.sphinx.util.props.S4Boolean;
 import edu.cmu.sphinx.util.props.S4Integer;
 
@@ -55,11 +53,15 @@ import edu.cmu.sphinx.util.props.S4Integer;
  */
 public class DiscreteFourierTransform extends BaseDataProcessor {
 
-    /** The property for the number of points in the Fourier Transform. */
+    /**
+     * The property for the number of points in the Fourier Transform.
+     */
     @S4Integer(defaultValue = -1)
     public static final String PROP_NUMBER_FFT_POINTS = "numberFftPoints";
 
-    /** The property for the invert transform. */
+    /**
+     * The property for the invert transform.
+     */
     @S4Boolean(defaultValue = false)
     public static final String PROP_INVERT = "invert";
 
@@ -90,24 +92,10 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
     public DiscreteFourierTransform() {
     }
 
-    /*
-    * (non-Javadoc)
-    *
-    * @see edu.cmu.sphinx.util.props.Configurable#newProperties(edu.cmu.sphinx.util.props.PropertySheet)
-    */
-    @Override
-    public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        logger = ps.getLogger();
-        numberFftPoints = ps.getInt(PROP_NUMBER_FFT_POINTS);
-        isNumberFftPointsSet = (numberFftPoints != -1);
-        invert = ps.getBoolean(PROP_INVERT);
-    }
-
 
     /* (non-Javadoc)
-    * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
-    */
+     * @see edu.cmu.sphinx.frontend.DataProcessor#initialize(edu.cmu.sphinx.frontend.CommonConfig)
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -117,7 +105,9 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
     }
 
 
-    /** Initialize all the data structures necessary for computing FFT. */
+    /**
+     * Initialize all the data structures necessary for computing FFT.
+     */
     private void initializeFFT() {
         /**
          * Number of points in the FFT. By default, the value is 512,
@@ -135,7 +125,9 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
     }
 
 
-    /** Initialize all the Complex arrays that will be necessary for FFT. */
+    /**
+     * Initialize all the Complex arrays that will be necessary for FFT.
+     */
     private void initComplexArrays() {
 
         inputFrame = new Complex[numberFftPoints];
@@ -155,11 +147,9 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
      *
      * @param input the input frame
      * @return a DoubleData that is the power spectrum of the input frame
-     * @throws java.lang.IllegalArgumentException
-     *
      */
     private DoubleData process(DoubleData input)
-            throws IllegalArgumentException {
+        throws IllegalArgumentException {
 
         /**
          * Create complex input sequence equivalent to the real
@@ -178,7 +168,7 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
             for (; i < in.length; i++) {
                 tempComplex.set(in[i], 0.0f);
                 inputFrame[i % numberFftPoints].addComplex
-                        (inputFrame[i % numberFftPoints], tempComplex);
+                    (inputFrame[i % numberFftPoints], tempComplex);
             }
         } else {
             int i = 0;
@@ -204,8 +194,8 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
          * Return the power spectrum
          */
         DoubleData output = new DoubleData
-                (outputSpectrum, input.getSampleRate(),
-                        input.getFirstSampleNumber());
+            (outputSpectrum, input.getSampleRate(),
+                input.getFirstSampleNumber());
 
         return output;
     }
@@ -216,17 +206,15 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
      * remainders.
      *
      * @param numberFftPoints number of points in the FFT
-     * @throws java.lang.IllegalArgumentException
-     *
      */
     private void computeLogBase2(int numberFftPoints)
-            throws IllegalArgumentException {
+        throws IllegalArgumentException {
         this.logBase2NumberFftPoints = 0;
         for (int k = numberFftPoints; k > 1;
-             k >>= 1, this.logBase2NumberFftPoints++) {
+            k >>= 1, this.logBase2NumberFftPoints++) {
             if (((k % 2) != 0) || (numberFftPoints < 0)) {
                 throw new IllegalArgumentException("Not a power of 2: "
-                        + numberFftPoints);
+                    + numberFftPoints);
             }
         }
     }
@@ -239,7 +227,7 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
      * N)</b></p> <p><b>Im(weightFft[k]) = sin ( -2 * PI * k / N)</b></p>
      *
      * @param numberFftPoints number of points in the FFT
-     * @param invert          whether it's direct (false) or inverse (true) FFT
+     * @param invert whether it's direct (false) or inverse (true) FFT
      */
     private void createWeightFft(int numberFftPoints, boolean invert) {
         /**
@@ -296,8 +284,8 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
                     int idealFftPoints = getNumberFftPoints(numberDataPoints);
                     if (idealFftPoints != numberFftPoints) {
                         logger.warning("User set numberFftPoints (" +
-                                numberFftPoints + ") is not ideal (" +
-                                idealFftPoints + ')');
+                            numberFftPoints + ") is not ideal (" +
+                            idealFftPoints + ')');
                     }
                 }
             }
@@ -320,7 +308,7 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
      * @param numberSamples the number of samples in the incoming window
      * @return the closest power of 2 that is equal to or larger than the number of samples in the incoming window
      */
-    private  static int getNumberFftPoints(int numberSamples) {
+    private static int getNumberFftPoints(int numberSamples) {
         int fftPoints = 1;
 
         while (fftPoints < numberSamples) {
@@ -340,15 +328,15 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
      * butterfly computes elements in place, but we still need to switch the vectors. We could copy it (not very
      * efficient...) or, in C, switch the pointers. We can avoid the pointers by using recursion.
      *
-     * @param input           input sequence
-     * @param output          output sequence
+     * @param input input sequence
+     * @param output output sequence
      * @param numberFftPoints number of points in the FFT
-     * @param invert          whether it's direct (false) or inverse (true) FFT
+     * @param invert whether it's direct (false) or inverse (true) FFT
      */
     private void recurseFft(Complex[] input,
-                            double[] output,
-                            int numberFftPoints,
-                            boolean invert) {
+        double[] output,
+        int numberFftPoints,
+        boolean invert) {
 
         double divisor;
 
@@ -393,7 +381,7 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
                 output[i] = to[i].squaredMagnitudeComplex();
             }
         }
-        }
+    }
 
 
     /**
@@ -404,15 +392,15 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
      * We repeat <code>butterflyStage</code> for <b>log_2(numberFftPoints)</b> stages, by calling the recursion with the
      * argument <code>currentDistance</code> divided by 2 at each call, and checking if it's still > 0.
      *
-     * @param from            the input sequence at each stage
-     * @param to              the output sequence
+     * @param from the input sequence at each stage
+     * @param to the output sequence
      * @param numberFftPoints the total number of points
      * @param currentDistance the "distance" between elements in the butterfly
      */
     private void butterflyStage(Complex[] from,
-                                Complex[] to,
-                                int numberFftPoints,
-                                int currentDistance) {
+        Complex[] to,
+        int numberFftPoints,
+        int currentDistance) {
         int ndx1From;
         int ndx2From;
         int ndx1To;
@@ -435,19 +423,19 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
                      * <b>                      *from[ndx2From]</b>
                      */
                     weightFftTimesFrom2.multiplyComplex
-                            (weightFft[ndxWeightFft], from[ndx2From]);
+                        (weightFft[ndxWeightFft], from[ndx2From]);
                     /**
                      * <b>to[ndx1To] = from[ndx1From]       </b>
                      * <b>             + weightFftTimesFrom2</b>
                      */
                     to[ndx1To].addComplex
-                            (from[ndx1From], weightFftTimesFrom2);
+                        (from[ndx1From], weightFftTimesFrom2);
                     /**
                      * <b>to[ndx2To] = from[ndx1From]       </b>
                      * <b>             - weightFftTimesFrom2</b>
                      */
                     to[ndx2To].subtractComplex
-                            (from[ndx1From], weightFftTimesFrom2);
+                        (from[ndx1From], weightFftTimesFrom2);
                     ndx1From += twiceCurrentDistance;
                     ndx2From += twiceCurrentDistance;
                     ndx1To += currentDistance;
@@ -466,5 +454,5 @@ public class DiscreteFourierTransform extends BaseDataProcessor {
              */
             butterflyStage(to, from, numberFftPoints, (currentDistance >> 1));
         }
-        }
+    }
 }
