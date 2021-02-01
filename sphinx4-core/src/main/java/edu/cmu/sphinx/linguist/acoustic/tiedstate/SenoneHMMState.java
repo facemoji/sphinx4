@@ -17,8 +17,6 @@ import edu.cmu.sphinx.linguist.acoustic.HMM;
 import edu.cmu.sphinx.linguist.acoustic.HMMState;
 import edu.cmu.sphinx.linguist.acoustic.HMMStateArc;
 import edu.cmu.sphinx.util.LogMath;
-import edu.cmu.sphinx.util.Utilities;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,9 +29,6 @@ public class SenoneHMMState implements HMMState {
     private final boolean isEmitting;
     private Senone senone;
     private final int hashCode;
-
-    private static int objectCount;
-
 
     /**
      * Constructs a SenoneHMMState
@@ -49,7 +44,6 @@ public class SenoneHMMState implements HMMState {
             SenoneSequence ss = hmm.getSenoneSequence();
             senone = ss.getSenones()[state];
         }
-        Utilities.objectTracker("HMMState", objectCount++);
         hashCode = hmm.hashCode() + 37 * state;
     }
 

@@ -15,7 +15,6 @@ package edu.cmu.sphinx.frontend;
 
 import edu.cmu.sphinx.util.Timer;
 import edu.cmu.sphinx.util.TimerPool;
-import edu.cmu.sphinx.util.props.S4ComponentList;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -90,8 +89,6 @@ import java.util.List;
  * edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank}"/&gt;
  * &lt;component name="dct" type="{@link edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform
  * edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform}"/&gt;
- * &lt;component name="batchCMN" type="{@link edu.cmu.sphinx.frontend.feature.BatchCMN
- * edu.cmu.sphinx.frontend.feature.BatchCMN}"/&gt;
  * &lt;component name="featureExtractor" type="{@link edu.cmu.sphinx.frontend.feature.DeltasFeatureExtractor
  * edu.cmu.sphinx.frontend.feature.DeltasFeatureExtractor}"/&gt;
  * </pre>
@@ -117,36 +114,17 @@ import java.util.List;
  */
 public class FrontEnd extends BaseDataProcessor {
 
-    /**
-     * the name of the property list of all the components of the frontend pipe line
-     */
-    @S4ComponentList(type = DataProcessor.class)
-    public final static String PROP_PIPELINE = "pipeline";
+    private final List<DataProcessor> frontEndList;
+    private final Timer timer;
 
-
-    // ----------------------------
-    // Configuration data
-    // -----------------------------
-    private List<DataProcessor> frontEndList;
-    private Timer timer;
-
-    private DataProcessor first;
-    private DataProcessor last;
-    private final List<SignalListener> signalListeners = new ArrayList<SignalListener>();
+    private final DataProcessor first;
+    private final DataProcessor last;
+    private final List<SignalListener> signalListeners = new ArrayList<>();
 
     public FrontEnd(List<DataProcessor> frontEndList) {
         if (frontEndList.isEmpty()) {
             throw new IllegalArgumentException("There must be at least one DataProcessor in FrontEnd");
         }
-        initLogger();
-        init(frontEndList);
-    }
-
-    public FrontEnd() {
-
-    }
-
-    private void init(List<DataProcessor> frontEndList) {
         this.timer = TimerPool.getTimer(this, "Frontend");
         this.frontEndList = DataProcessor.chainProcessors(frontEndList);
         this.first = frontEndList.get(0);
@@ -244,20 +222,10 @@ public class FrontEnd extends BaseDataProcessor {
      * @param signal the signal that occurred
      */
     protected void fireSignalListeners(Signal signal) {
-        for (SignalListener listener : new ArrayList<SignalListener>(signalListeners))
+        for (SignalListener listener : new ArrayList<>(signalListeners)) {
             listener.signalOccurred(signal);
+        }
     }
-
-
-    /**
-     * Returns the last data processor within the <code>DataProcessor</code> chain of this <code>FrontEnd</code>.
-     *
-     * @return last processor
-     */
-    public DataProcessor getLastDataProcessor() {
-        return last;
-    }
-
 
     /**
      * Returns a description of this FrontEnd in the format: &lt;front end name&gt; {&lt;DataProcessor1&gt;, &lt;DataProcessor2&gt; ...
@@ -269,7 +237,7 @@ public class FrontEnd extends BaseDataProcessor {
     public String toString() {
         if (last == null)
             return super.toString() + " {}";
-        LinkedList<DataProcessor> list = new LinkedList<DataProcessor>();
+        LinkedList<DataProcessor> list = new LinkedList<>();
         for (DataProcessor current = last; current != null; current = current.getPredecessor())
             list.addFirst(current); // add processors in their correct order
         StringBuilder description = new StringBuilder(super.toString()).append(" {");

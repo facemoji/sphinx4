@@ -16,13 +16,11 @@ import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.sqrt;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-
 import edu.cmu.sphinx.frontend.FloatData;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.MixtureComponent;
 import edu.cmu.sphinx.util.LogMath;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * Some tests which test the functionality of <code>MixtureComponent</code>.
@@ -31,11 +29,6 @@ import edu.cmu.sphinx.util.LogMath;
  * well.
  */
 public class MixtureComponentTest {
-
-    @BeforeSuite
-    public void setupLogMath() {
-        LogMath.setUseTable(true);
-    }
 
     /**
      * Compute the density values of a sampled interval with an univariate <code>MixtureComponent</code> and compare

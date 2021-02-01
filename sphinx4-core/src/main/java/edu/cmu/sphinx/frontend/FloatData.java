@@ -18,7 +18,7 @@ import edu.cmu.sphinx.util.MatrixUtils;
  *
  * @see Data
  */
-public class FloatData implements Data, Cloneable {
+public class FloatData implements Data {
 
     private final float[] values;
     private final int sampleRate;
@@ -44,8 +44,7 @@ public class FloatData implements Data, Cloneable {
      * @param collectTime       the time at which this data is collected
      * @param firstSampleNumber the position of the first sample in the original data
      */
-    public FloatData(float[] values, int sampleRate,
-                     long collectTime, long firstSampleNumber) {
+    public FloatData(float[] values, int sampleRate, long collectTime, long firstSampleNumber) {
         this.values = values;
         this.sampleRate = sampleRate;
         this.collectTime = collectTime;
@@ -87,18 +86,8 @@ public class FloatData implements Data, Cloneable {
         return collectTime;
     }
 
-    @Override
-    public FloatData clone() throws CloneNotSupportedException {
-        try {
-            FloatData data = (FloatData)super.clone();
-            return data;
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError(e.toString());
-        }
-    }
 
-
-    /** 
+    /**
      * Converts a given Data-object into a <code>FloatData</code> if possible.
      * @param data data to convert
      * @return converted data
@@ -109,8 +98,7 @@ public class FloatData implements Data, Cloneable {
             convertData = (FloatData) data;
         else if (data instanceof DoubleData) {
             DoubleData dd = (DoubleData) data;
-            convertData = new FloatData(MatrixUtils.double2float(dd.getValues()), dd.getSampleRate(),
-                    dd.getFirstSampleNumber());
+            convertData = new FloatData(MatrixUtils.double2float(dd.getValues()), dd.getSampleRate(), dd.getFirstSampleNumber());
         } else
             throw new IllegalArgumentException("data type '" + data.getClass() + "' is not supported");
 

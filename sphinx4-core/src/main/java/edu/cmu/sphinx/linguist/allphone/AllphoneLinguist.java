@@ -9,9 +9,6 @@ import edu.cmu.sphinx.linguist.acoustic.Unit;
 import edu.cmu.sphinx.linguist.acoustic.UnitManager;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.SenoneHMM;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.SenoneSequence;
-import edu.cmu.sphinx.util.props.S4Boolean;
-import edu.cmu.sphinx.util.props.S4Component;
-import edu.cmu.sphinx.util.props.S4Double;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,38 +19,33 @@ public class AllphoneLinguist implements Linguist {
     /**
      * The property that defines the acoustic model to use when building the search graph
      */
-    @S4Component(type = AcousticModel.class)
-    public final static String PROP_ACOUSTIC_MODEL = "acousticModel";
-
-    /**
-     * The property that controls phone insertion probability.
-     * Default value for context independent phoneme decoding is 0.05,
-     * while for context dependent - 0.01.
-     */
-    @S4Double(defaultValue = 0.05)
-    public final static String PROP_PIP = "phoneInsertionProbability";
-
-    /**
-     * The property that controls whether to use context dependent phones.
-     * Changing it for true, don't forget to tune phone insertion probability.
-     */
-    @S4Boolean(defaultValue = false)
-    public final static String PROP_CD = "useContextDependentPhones";
-
-    private AcousticModel acousticModel;
+    private final AcousticModel acousticModel;
     private ArrayList<HMM> ciHMMs;
     private ArrayList<HMM> fillerHMMs;
     private ArrayList<HMM> leftContextSilHMMs;
     private HashMap<SenoneSequence, ArrayList<Unit>> senonesToUnits;
     private HashMap<Unit, HashMap<Unit, ArrayList<HMM>>> cdHMMs;
-    private float phoneInsertionProbability;
-    private boolean useContextDependentPhones;
-    private boolean allocated = false;
 
-    public AllphoneLinguist() {
+    /**
+     * The property that controls phone insertion probability.
+     * Default value for context independent phoneme decoding is 0.05,
+     * while for context dependent - 0.01.
+     *
+     * (defaultValue = 0.05)
+     */
+    private final float phoneInsertionProbability;
 
-    }
+    /**
+     * The property that controls whether to use context dependent phones.
+     * Changing it for true, don't forget to tune phone insertion probability.
+     * (defaultValue = false)
+     */
+    private final boolean useContextDependentPhones;
 
+    /**
+     * @param phoneInsertionProbability The property that controls phone insertion probability. Default value for context independent phoneme decoding is 0.05, while for context dependent - 0.01.
+     * @param useContextDependentPhones The property that controls whether to use context dependent phones. Changing it for true, don't forget to tune phone insertion probability. (defaultValue = false)
+     */
     public AllphoneLinguist(AcousticModel acousticModel, float phoneInsertionProbability, boolean useContextDependentPhones) {
         this.acousticModel = acousticModel;
         this.phoneInsertionProbability = phoneInsertionProbability;
@@ -73,12 +65,10 @@ public class AllphoneLinguist implements Linguist {
     public void allocate() throws IOException {
         acousticModel.allocate();
         createSuccessors(useContextDependentPhones);
-        allocated = true;
     }
 
     public void deallocate() throws IOException {
         acousticModel.deallocate();
-        allocated = false;
     }
 
     private void createSuccessors(boolean useCD) {

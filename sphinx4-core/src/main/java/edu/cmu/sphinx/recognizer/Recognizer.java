@@ -14,10 +14,7 @@ package edu.cmu.sphinx.recognizer;
 
 import edu.cmu.sphinx.decoder.Decoder;
 import edu.cmu.sphinx.decoder.ResultListener;
-import edu.cmu.sphinx.instrumentation.Monitor;
 import edu.cmu.sphinx.result.Result;
-import edu.cmu.sphinx.util.props.S4Component;
-import edu.cmu.sphinx.util.props.S4ComponentList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,37 +47,22 @@ import java.util.List;
 public class Recognizer {
 
   /**
-   * The property for the decoder to be used by this recognizer.
-   */
-  @S4Component(type = Decoder.class)
-  public final static String PROP_DECODER = "decoder";
-
-  /**
-   * The property for the set of monitors for this recognizer
-   */
-  @S4ComponentList(type = Monitor.class)
-  public final static String PROP_MONITORS = "monitors";
-
-  /**
    * Defines the possible states of the recognizer.
    */
-  public static enum State {DEALLOCATED, ALLOCATING, ALLOCATED, READY, RECOGNIZING, DEALLOCATING, ERROR}
+  public enum State {DEALLOCATED, ALLOCATING, ALLOCATED, READY, RECOGNIZING, DEALLOCATING, ERROR}
 
-  private String name;
-  private Decoder decoder;
+  private final String name;
+  /**
+   * The property for the decoder to be used by this recognizer.
+   */
+  private final Decoder decoder;
   private State currentState = State.DEALLOCATED;
 
-  private final List<StateListener> stateListeners = Collections.synchronizedList(new ArrayList<StateListener>());
-  private List<Monitor> monitors;
+  private final List<StateListener> stateListeners = Collections.synchronizedList(new ArrayList<>());
 
-
-  public Recognizer(Decoder decoder, List<Monitor> monitors) {
+  public Recognizer(Decoder decoder) {
     this.decoder = decoder;
-    this.monitors = monitors;
     name = null;
-  }
-
-  public Recognizer() {
   }
 
 
@@ -93,7 +75,7 @@ public class Recognizer {
    * @throws IllegalStateException if the recognizer is not in the <code>ALLOCATED</code> state
    */
   public Result recognize(String referenceText) throws IllegalStateException {
-    Result result = null;
+    Result result;
     checkState(State.READY);
     try {
       setState(State.RECOGNIZING);

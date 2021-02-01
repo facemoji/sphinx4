@@ -1,11 +1,11 @@
 /*
- * Copyright 2004 Carnegie Mellon University.  
- * Portions Copyright 2004 Sun Microsystems, Inc.  
+ * Copyright 2004 Carnegie Mellon University.
+ * Portions Copyright 2004 Sun Microsystems, Inc.
  * Portions Copyright 2004 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -13,17 +13,18 @@
 
 package edu.cmu.sphinx.frontend;
 
-import edu.cmu.sphinx.util.props.ConfigurableAdapter;
+import edu.cmu.sphinx.util.props.NamedComponent;
 
 /**
  * An abstract DataProcessor implementing elements common to all concrete DataProcessors, such as name, predecessor, and
  * timer.
  */
-public abstract class BaseDataProcessor extends ConfigurableAdapter implements DataProcessor {
+public abstract class BaseDataProcessor extends NamedComponent implements DataProcessor {
 
     private DataProcessor predecessor;
 
     public BaseDataProcessor() {
+        initLogger();
     }
 
     /**

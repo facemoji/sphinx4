@@ -8,12 +8,9 @@ import java.lang.annotation.RetentionPolicy;
  * child classes are annotated by this general property annotation.
  *
  * @author Holger Brandl
- * @see S4Component
  * @see S4Integer
- * @see S4ComponentList
  * @see S4Double
  * @see S4Boolean
- * @see S4String
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface S4Property {

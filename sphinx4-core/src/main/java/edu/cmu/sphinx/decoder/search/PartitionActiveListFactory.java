@@ -30,10 +30,6 @@ public class PartitionActiveListFactory extends ActiveListFactory {
         super(absoluteBeamWidth, relativeBeamWidth);
     }
 
-    public PartitionActiveListFactory() {
-
-    }
-
 
     /*
      * (non-Javadoc)

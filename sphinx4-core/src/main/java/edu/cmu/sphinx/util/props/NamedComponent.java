@@ -8,12 +8,12 @@ import java.util.logging.Logger;
  *
  * @author Holger Brandl
  */
-public abstract class ConfigurableAdapter {
+public abstract class NamedComponent {
 
   private String name;
   protected Logger logger;
 
-  public ConfigurableAdapter() {
+  public NamedComponent() {
   }
 
   protected void initLogger() {

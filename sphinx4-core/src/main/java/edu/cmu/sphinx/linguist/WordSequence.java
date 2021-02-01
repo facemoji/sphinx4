@@ -14,10 +14,10 @@ package edu.cmu.sphinx.linguist;
 
 import static java.lang.Math.min;
 
-import java.util.*;
-
-import edu.cmu.sphinx.linguist.dictionary.Dictionary;
 import edu.cmu.sphinx.linguist.dictionary.Word;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This class can be used to keep track of a word sequence. This class is an
@@ -27,48 +27,8 @@ import edu.cmu.sphinx.linguist.dictionary.Word;
 
 public final class WordSequence implements Comparable<WordSequence> {
 
-    /**
-     * Comparator that compares two sequences by their oldest part.
-     */
-    public final static Comparator<WordSequence> OLDEST_COMPARATOR =
-            new Comparator<WordSequence>() {
-                public int compare(WordSequence o1, WordSequence o2) {
-                    return o1.getOldest().compareTo(o2.getOldest());
-                }
-            };
-
-    /** an empty word sequence, that is, it has no words. */
-    public final static WordSequence EMPTY = new WordSequence(0);
-
-    public static WordSequence asWordSequence(final Dictionary dictionary,
-            String... words) {
-        Word[] dictWords = new Word[words.length];
-        for (int i = 0; i < words.length; i++) {
-            dictWords[i] = dictionary.getWord(words[i]);
-        }
-        return new WordSequence(dictWords);
-    }
-
     private final Word[] words;
     private transient int hashCode = -1;
-
-    /**
-     * Constructs a word sequence with the given depth.
-     *
-     * @param size the maximum depth of the word history
-     */
-    private WordSequence(int size) {
-        words = new Word[size];
-    }
-
-    /**
-     * Constructs a word sequence with the given word IDs
-     *
-     * @param words the word IDs of the word sequence
-     */
-    public WordSequence(Word... words) {
-        this(Arrays.asList(words));
-    }
 
     /**
      * Constructs a word sequence from the list of words
@@ -76,7 +36,7 @@ public final class WordSequence implements Comparable<WordSequence> {
      * @param list the list of words
      */
     public WordSequence(List<Word> list) {
-        this.words = list.toArray(new Word[list.size()]);
+        this.words = list.toArray(new Word[0]);
         check();
     }
 
@@ -84,89 +44,6 @@ public final class WordSequence implements Comparable<WordSequence> {
         for (Word word : words)
             if (word == null)
                 throw new Error("WordSequence should not have null Words.");
-    }
-
-    /**
-     * Returns a new word sequence with the given word added to the sequence
-     *
-     * @param word the word to add to the sequence
-     * @param maxSize the maximum size of the generated sequence
-     * @return a new word sequence with the word added (but trimmed to
-     *         maxSize).
-     */
-    public WordSequence addWord(Word word, int maxSize) {
-        if (maxSize <= 0) {
-            return EMPTY;
-        }
-        int nextSize = ((size() + 1) > maxSize) ? maxSize : (size() + 1);
-        WordSequence next = new WordSequence(nextSize);
-        int nextIndex = nextSize - 1;
-        int thisIndex = size() - 1;
-        next.words[nextIndex--] = word;
-
-        while (nextIndex >= 0 && thisIndex >= 0) {
-            next.words[nextIndex--] = this.words[thisIndex--];
-        }
-        next.check();
-
-        return next;
-    }
-
-    /**
-     * Returns the oldest words in the sequence (the newest word is omitted)
-     *
-     * @return the oldest words in the sequence, with the newest word omitted
-     */
-    public WordSequence getOldest() {
-        WordSequence next = EMPTY;
-
-        if (size() >= 1) {
-            next = new WordSequence(words.length - 1);
-            System.arraycopy(this.words, 0, next.words, 0, next.words.length);
-        }
-        return next;
-    }
-
-    /**
-     * Returns the newest words in the sequence (the old word is omitted)
-     *
-     * @return the newest words in the sequence with the oldest word omitted
-     */
-    public WordSequence getNewest() {
-        WordSequence next = EMPTY;
-
-        if (size() >= 1) {
-            next = new WordSequence(words.length - 1);
-            System.arraycopy(this.words, 1, next.words, 0, next.words.length);
-        }
-        return next;
-    }
-
-    /**
-     * Returns a word sequence that is no longer than the given size, that is
-     * filled in with the newest words from this sequence
-     *
-     * @param maxSize the maximum size of the sequence
-     * @return a new word sequence, trimmed to maxSize.
-     */
-    public WordSequence trim(int maxSize) {
-        if (maxSize <= 0 || size() == 0) {
-            return EMPTY;
-        } else if (maxSize == size()) {
-            return this;
-        } else {
-            if (maxSize > size()) {
-                maxSize = size();
-            }
-            WordSequence next = new WordSequence(maxSize);
-            int thisIndex = words.length - 1;
-            int nextIndex = next.words.length - 1;
-
-            for (int i = 0; i < maxSize; i++) {
-                next.words[nextIndex--] = this.words[thisIndex--];
-            }
-            return next;
-        }
     }
 
     /**
@@ -243,7 +120,7 @@ public final class WordSequence implements Comparable<WordSequence> {
      *         <code>stopIndex</code> exclusive.
      */
     public WordSequence getSubSequence(int startIndex, int stopIndex) {
-        List<Word> subseqWords = new ArrayList<Word>();
+        List<Word> subseqWords = new ArrayList<>();
 
         for (int i = startIndex; i < stopIndex; i++) {
             subseqWords.add(getWord(i));

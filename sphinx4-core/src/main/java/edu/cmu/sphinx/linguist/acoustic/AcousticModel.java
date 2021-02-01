@@ -12,16 +12,12 @@
 
 package edu.cmu.sphinx.linguist.acoustic;
 
-import edu.cmu.sphinx.util.props.S4String;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Properties;
 
 /** Represents the generic interface to the Acoustic Model for sphinx4 */
 public interface AcousticModel {
-
-    /** The directory where the acoustic model data can be found. */
-    @S4String(defaultValue = ".") String PROP_LOCATION = "location";
 
     /**
      * Gets this acoustic model ready to use, allocating all necessary resources.

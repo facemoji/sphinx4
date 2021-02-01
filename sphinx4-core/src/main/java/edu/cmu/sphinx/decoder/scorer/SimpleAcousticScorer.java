@@ -7,7 +7,7 @@ import edu.cmu.sphinx.frontend.DoubleData;
 import edu.cmu.sphinx.frontend.Signal;
 import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
 import edu.cmu.sphinx.frontend.util.DataUtil;
-import edu.cmu.sphinx.util.props.ConfigurableAdapter;
+import edu.cmu.sphinx.util.props.NamedComponent;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Holger Brandl
  */
-public class SimpleAcousticScorer extends ConfigurableAdapter implements AcousticScorer {
+public class SimpleAcousticScorer extends NamedComponent implements AcousticScorer {
 
     /**
      * Property the defines the frontend to retrieve features from for scoring

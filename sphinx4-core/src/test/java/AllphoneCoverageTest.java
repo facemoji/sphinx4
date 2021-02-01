@@ -1,5 +1,6 @@
+import edu.cmu.sphinx.api.ByteInputStream;
+import edu.cmu.sphinx.api.InputStreams;
 import edu.cmu.sphinx.api.PhonemeRecognizerFactory;
-import edu.cmu.sphinx.api.SpeechResult;
 import edu.cmu.sphinx.decoder.ResultListener;
 import edu.cmu.sphinx.decoder.search.Token;
 import edu.cmu.sphinx.frontend.util.StreamDataSource;
@@ -21,22 +22,22 @@ public class AllphoneCoverageTest {
 
   @Test
   public void minimalisticPhonemeDetectionWithoutAutomagic() throws IOException {
-    StreamDataSource dataSource = new StreamDataSource(16000, 3200, 16, false, true);
-    dataSource.setInputStream(getAudioInputStream());
-    Recognizer recognizer = PhonemeRecognizerFactory.createPhonemeRecognizer(dataSource, "resource:/edu/cmu/sphinx/models/en-us/en-us");
-    recognizer.allocate();
-    recognizer.addResultListener(createResultListener());
-    runRecognition(recognizer);
-    recognizer.deallocate();
+    try (ByteInputStream dataStream = InputStreams.fromInputStream(getAudioInputStream())) {
+      StreamDataSource dataSource = new StreamDataSource(dataStream, 16000, 3200, 16, false, true);
+      Recognizer recognizer = PhonemeRecognizerFactory.createPhonemeRecognizer(dataSource, "resource:/edu/cmu/sphinx/models/en-us/en-us");
+      recognizer.allocate();
+      recognizer.addResultListener(createResultListener());
+      runRecognition(recognizer);
+      recognizer.deallocate();
+    }
   }
 
   private void runRecognition(Recognizer recognizer) {
     Result result;
     while ((result = recognizer.recognize()) != null) {
-      SpeechResult speechResult = new SpeechResult(result);
-      System.out.format("%nHypothesis: %s%n", speechResult.getHypothesis());
+      System.out.format("%nHypothesis: %s%n", result.getBestResultNoFiller());
       System.out.println("List of recognized words and their times:");
-      for (WordResult r : speechResult.getWords()) {
+      for (WordResult r : result.getTimedBestResult(false)) {
         System.out.println(r);
       }
     }

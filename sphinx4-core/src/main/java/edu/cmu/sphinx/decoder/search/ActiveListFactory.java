@@ -60,9 +60,6 @@ public abstract class ActiveListFactory {
         this.logRelativeBeamWidth = logMath.linearToLog(relativeBeamWidth);
     }
 
-    public ActiveListFactory() {
-    }
-
 
     /**
      * Creates a new active list of a particular type

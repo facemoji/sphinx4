@@ -16,7 +16,6 @@ import edu.cmu.sphinx.linguist.acoustic.HMM;
 import edu.cmu.sphinx.linguist.acoustic.HMMPosition;
 import edu.cmu.sphinx.linguist.acoustic.HMMState;
 import edu.cmu.sphinx.linguist.acoustic.Unit;
-import edu.cmu.sphinx.util.Utilities;
 
 /**
  * Represents a hidden-markov-model. An HMM consists of a unit (context dependent or independent), a transition matrix
@@ -30,31 +29,27 @@ public class SenoneHMM implements HMM {
     private final SenoneSequence senoneSequence;
     private final float[][] transitionMatrix;
     private final HMMPosition position;
-    private static int objectCount;
     private final HMMState[] hmmStates;
 
 
     /**
      * Constructs an HMM
      *
-     * @param unit             the unit for this HMM
-     * @param senoneSequence   the sequence of senones for this HMM
+     * @param unit the unit for this HMM
+     * @param senoneSequence the sequence of senones for this HMM
      * @param transitionMatrix the state transition matrix
-     * @param position         the position associated with this HMM
+     * @param position the position associated with this HMM
      */
-    public SenoneHMM(Unit unit, SenoneSequence senoneSequence,
-                     float[][] transitionMatrix, HMMPosition position) {
+    public SenoneHMM(Unit unit, SenoneSequence senoneSequence, float[][] transitionMatrix, HMMPosition position) {
         this.unit = unit;
         this.senoneSequence = senoneSequence;
         this.transitionMatrix = transitionMatrix;
         this.position = position;
-        Utilities.objectTracker("HMM", objectCount++);
 
         hmmStates = new HMMState[transitionMatrix.length];
         for (int i = 0; i < hmmStates.length; i++) {
             hmmStates[i] = new SenoneHMMState(this, i);
         }
-        // baseUnit = Unit.getUnit(unit.getName());
         baseUnit = unit.getBaseUnit();
     }
 
@@ -222,7 +217,7 @@ public class SenoneHMM implements HMM {
             return true;
         } else if (o instanceof SenoneHMM) {
             SenoneHMM other = (SenoneHMM) o;
-		return getSenoneSequence().equals(other.getSenoneSequence());
+            return getSenoneSequence().equals(other.getSenoneSequence());
         }
         return false;
     }

@@ -12,13 +12,9 @@
 
 package edu.cmu.sphinx.util;
 
-import java.io.PrintWriter;
-
 
 /** Provides a set of generic utilities */
 public class Utilities {
-
-    private final static boolean TRACKING_OBJECTS = false;
 
 
     // Unconstructable.
@@ -85,33 +81,6 @@ public class Utilities {
      */
     public static String pad(double val, int minLength) {
         return pad(String.valueOf(val), minLength);
-    }
-
-    /**
-     * Dumps padded text. This is a simple tool for helping dump text with padding to a Writer.
-     *
-     * @param pw      the stream to send the output
-     * @param padding the number of spaces in the string
-     * @param string  the string to output
-     */
-    public static void dump(PrintWriter pw, int padding, String string) {
-        pw.print(pad(padding));
-        pw.println(string);
-    }
-
-
-    /**
-     * utility method for tracking object counts
-     *
-     * @param name  the name of the object
-     * @param count the count of objects
-     */
-    public static void objectTracker(String name, int count) {
-        if (TRACKING_OBJECTS) {
-            if (count % 1000 == 0) {
-                System.out.println("OT: " + name + ' ' + count);
-            }
-        }
     }
 
 

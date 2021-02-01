@@ -21,8 +21,6 @@ import edu.cmu.sphinx.linguist.acoustic.HMMPosition;
 import edu.cmu.sphinx.linguist.acoustic.LeftRightContext;
 import edu.cmu.sphinx.linguist.acoustic.Unit;
 import edu.cmu.sphinx.linguist.acoustic.UnitManager;
-import edu.cmu.sphinx.util.props.S4Boolean;
-import edu.cmu.sphinx.util.props.S4Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,25 +68,6 @@ import java.util.logging.Logger;
  */
 public class TiedStateAcousticModel implements AcousticModel {
 
-  /**
-   * The property that defines the component used to load the acoustic model
-   */
-  @S4Component(type = Model.class)
-  public final static String PROP_LOADER = "loader";
-
-  /**
-   * The property that defines the unit manager
-   */
-  @S4Component(type = UnitManager.class)
-  public final static String PROP_UNIT_MANAGER = "unitManager";
-
-  /**
-   * Controls whether we generate composites or CI units when no context is given during a lookup.
-   */
-  @S4Boolean(defaultValue = true)
-  public final static String PROP_USE_COMPOSITES = "useComposites";
-
-
   // -----------------------------
   // Configured variables
   // -----------------------------
@@ -96,7 +75,7 @@ public class TiedStateAcousticModel implements AcousticModel {
   protected Logger logger;
   protected Model model;
   protected UnitManager unitManager;
-  private boolean useComposites;
+  private final boolean useComposites;
   private Properties properties;
 
   // ----------------------------
@@ -104,15 +83,15 @@ public class TiedStateAcousticModel implements AcousticModel {
   // -----------------------------
   final transient private Map<String, SenoneSequence> compositeSenoneSequenceCache = new HashMap<>();
 
+  /**
+   * @param model The acoustic model
+   * @param useComposites Controls whether we generate composites or CI units when no context is given during a lookup. (defaultValue = true)
+   */
   public TiedStateAcousticModel(Model model, UnitManager unitManager, boolean useComposites) {
     this.model = model;
     this.unitManager = unitManager;
     this.useComposites = useComposites;
     this.logger = Logger.getLogger(getClass().getName());
-  }
-
-  public TiedStateAcousticModel() {
-
   }
 
   /**
@@ -242,9 +221,7 @@ public class TiedStateAcousticModel implements AcousticModel {
       if (lrContext.getRightContext() == null) {
         return true;
       }
-      if (lrContext.getLeftContext() == null) {
-        return true;
-      }
+      return lrContext.getLeftContext() == null;
     }
     return false;
   }

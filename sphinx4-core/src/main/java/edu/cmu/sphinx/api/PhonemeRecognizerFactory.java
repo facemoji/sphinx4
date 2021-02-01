@@ -70,7 +70,7 @@ public class PhonemeRecognizerFactory {
             false);
 
         Decoder decoder = new Decoder(searchManager, true, false, new ArrayList<>(), 1);
-        return new Recognizer(decoder, new ArrayList<>());
+        return new Recognizer(decoder);
     }
 
     // TODO Improve this mess

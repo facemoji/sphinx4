@@ -25,63 +25,23 @@ import edu.cmu.sphinx.recognizer.Recognizer.State;
 import edu.cmu.sphinx.recognizer.StateListener;
 import edu.cmu.sphinx.result.Result;
 import edu.cmu.sphinx.util.TimerPool;
-import edu.cmu.sphinx.util.props.ConfigurableAdapter;
-import edu.cmu.sphinx.util.props.S4Boolean;
-import edu.cmu.sphinx.util.props.S4Component;
+import edu.cmu.sphinx.util.props.NamedComponent;
 import java.text.DecimalFormat;
 
 /**
  * Monitors a recognizer for speed
  */
-public class SpeedTracker extends ConfigurableAdapter implements ResultListener, StateListener, SignalListener, Monitor {
-
-    /**
-     * The property that defines which recognizer to monitor
-     */
-    @S4Component(type = Recognizer.class)
-    public final static String PROP_RECOGNIZER = "recognizer";
-    /**
-     * The property that defines which frontend to monitor
-     */
-    @S4Component(type = FrontEnd.class)
-    public final static String PROP_FRONTEND = "frontend";
-    /**
-     * The property that defines whether summary accuracy information is displayed
-     */
-    @S4Boolean(defaultValue = true)
-    public final static String PROP_SHOW_SUMMARY = "showSummary";
-
-    /**
-     * The property that defines whether detailed accuracy information is displayed
-     */
-    @S4Boolean(defaultValue = true)
-    public final static String PROP_SHOW_DETAILS = "showDetails";
-
-    /**
-     * The property that defines whether detailed response information is displayed
-     */
-    @S4Boolean(defaultValue = false)
-    public final static String PROP_SHOW_RESPONSE_TIME = "showResponseTime";
-
-    /**
-     * The property that defines whether detailed timer information is displayed
-     */
-    @S4Boolean(defaultValue = false)
-    public final static String PROP_SHOW_TIMERS = "showTimers";
+public class SpeedTracker extends NamedComponent implements ResultListener, StateListener, SignalListener, Monitor {
 
     private static final DecimalFormat timeFormat = new DecimalFormat("0.00");
 
 
-    // ------------------------------
-    // Configuration data
-    // ------------------------------
-    private String name;
     private Recognizer recognizer;
     private FrontEnd frontEnd;
 
-    private boolean showSummary;
-    private boolean showDetails;
-    private boolean showTimers;
+    private final boolean showSummary;
+    private final boolean showDetails;
+    private final boolean showTimers;
     private long startTime;
     private long audioStartTime;
     private float audioTime;
@@ -89,13 +49,17 @@ public class SpeedTracker extends ConfigurableAdapter implements ResultListener,
     private float totalAudioTime;
     private float totalProcessingTime;
 
-    private boolean showResponseTime;
+    private final boolean showResponseTime;
     private int numUtteranceStart;
     private long maxResponseTime = Long.MIN_VALUE;
     private long minResponseTime = Long.MAX_VALUE;
     private long totalResponseTime;
 
-
+    /**
+     * @param recognizer defines which recognizer to monitor
+     * @param frontEnd defines which frontend to monitor
+     * @param showSummary whether summary accuracy information is displayed (defaultValue = true)
+     */
     public SpeedTracker(Recognizer recognizer, FrontEnd frontEnd, boolean showSummary, boolean showDetails, boolean showResponseTime, boolean showTimers) {
         initLogger();
         initRecognizer(recognizer);
@@ -104,9 +68,6 @@ public class SpeedTracker extends ConfigurableAdapter implements ResultListener,
         this.showDetails = showDetails;
         this.showResponseTime = showResponseTime;
         this.showTimers = showTimers;
-    }
-
-    public SpeedTracker() {
     }
 
     private void initFrontEnd(FrontEnd newFrontEnd) {
@@ -132,16 +93,6 @@ public class SpeedTracker extends ConfigurableAdapter implements ResultListener,
             recognizer.addResultListener(this);
             recognizer.addStateListener(this);
         }
-    }
-
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see edu.cmu.sphinx.util.props.Configurable#getName()
-     */
-    public String getName() {
-        return name;
     }
 
 

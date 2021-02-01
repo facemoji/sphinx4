@@ -23,10 +23,6 @@ import edu.cmu.sphinx.util.LogMath;
 import edu.cmu.sphinx.util.StatisticsVariable;
 import edu.cmu.sphinx.util.Timer;
 import edu.cmu.sphinx.util.TimerPool;
-import edu.cmu.sphinx.util.props.S4Boolean;
-import edu.cmu.sphinx.util.props.S4Component;
-import edu.cmu.sphinx.util.props.S4Double;
-import edu.cmu.sphinx.util.props.S4Integer;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -44,69 +40,48 @@ import java.util.logging.Logger;
  * <p>
  * For information about breadth first search please refer to "Spoken Language Processing", X. Huang, PTR
  */
-
-// TODO - need to add in timing code.
 public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
 
     /**
      * The property that defines the name of the linguist to be used by this search manager.
      */
-    @S4Component(type = Linguist.class)
-    public final static String PROP_LINGUIST = "linguist";
-
-    /**
-     * The property that defines the name of the linguist to be used by this search manager.
-     */
-    @S4Component(type = Pruner.class)
-    public final static String PROP_PRUNER = "pruner";
+    private final Pruner pruner; // used to prune the active list
 
     /**
      * The property that defines the name of the scorer to be used by this search manager.
      */
-    @S4Component(type = AcousticScorer.class)
-    public final static String PROP_SCORER = "scorer";
-
-    /**
-     * The property that defines the name of the active list factory to be used by this search manager.
-     */
-    @S4Component(type = ActiveListFactory.class)
-    public final static String PROP_ACTIVE_LIST_FACTORY = "activeListFactory";
-
-    /**
-     * The property that sets the minimum score relative to the maximum score in the word list for pruning. Words with a
-     * score less than relativeBeamWidth * maximumScore will be pruned from the list
-     */
-    @S4Double(defaultValue = 0.0)
-    public final static String PROP_RELATIVE_WORD_BEAM_WIDTH = "relativeWordBeamWidth";
-
+    private final AcousticScorer scorer; // used to score the active list
+    private final Logger logger;
+    private final String name;
     /**
      * The property that controls whether or not relative beam pruning will be performed on the entry into a
      * state.
+     * (defaultValue = false)
      */
-    @S4Boolean(defaultValue = false)
-    public final static String PROP_WANT_ENTRY_PRUNING = "wantEntryPruning";
-
+    private final boolean wantEntryPruning;
+    /**
+     * The property that sets the minimum score relative to the maximum score in the word list for pruning. Words with a
+     * score less than relativeBeamWidth * maximumScore will be pruned from the list
+     * (defaultValue = 0.0)
+     */
+    private final float logRelativeWordBeamWidth;
     /**
      * The property that controls the number of frames processed for every time the decode growth step is skipped.
      * Setting this property to zero disables grow skipping. Setting this number to a small integer will increase the
      * speed of the decoder but will also decrease its accuracy. The higher the number, the less often the grow code is
      * skipped.
+     * defaultValue = 0
      */
-    @S4Integer(defaultValue = 0)
-    public final static String PROP_GROW_SKIP_INTERVAL = "growSkipInterval";
-
-
-    protected Linguist linguist; // Provides grammar/language info
-    private Pruner pruner; // used to prune the active list
-    private AcousticScorer scorer; // used to score the active list
-    protected int currentFrameNumber; // the current frame number
-    protected long currentCollectTime; // the current frame number
-    protected ActiveList activeList; // the list of active tokens
-    protected List<Token> resultList; // the current set of results
-    protected LogMath logMath;
-
-    private Logger logger;
-    private String name;
+    private final int growSkipInterval;
+    /**
+     * The property that defines the name of the linguist to be used by this search manager.
+     * Provides grammar/language info
+     */
+    private final Linguist linguist;
+    /**
+     * The property that defines the name of the active list factory to be used by this search manager.
+     */
+    private final ActiveListFactory activeListFactory;
 
     // ------------------------------------
     // monitoring data
@@ -114,7 +89,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
 
     private Timer scoreTimer; // TODO move these timers out
     private Timer pruneTimer;
-    protected Timer growTimer;
+    private int currentFrameNumber; // the current frame number
     private StatisticsVariable totalTokensScored;
     private StatisticsVariable tokensPerSecond;
     private StatisticsVariable curTokensScored;
@@ -125,21 +100,16 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     // ------------------------------------
     // Working data
     // ------------------------------------
-
-    private boolean wantEntryPruning;
-    protected Map<SearchState, Token> bestTokenMap;
-    private float logRelativeWordBeamWidth;
+    private long currentCollectTime; // the current frame number
+    private ActiveList activeList; // the list of active tokens
+    private List<Token> resultList; // the current set of results
     private int totalHmms;
     private double startTime;
     private float threshold;
     private float wordThreshold;
-    private int growSkipInterval;
-    protected ActiveListFactory activeListFactory;
-    protected boolean streamEnd;
-
-    public SimpleBreadthFirstSearchManager() {
-
-    }
+    private Timer growTimer;
+    private Map<SearchState, Token> bestTokenMap;
+    private boolean streamEnd;
 
     /**
      * Creates a manager for simple search
@@ -152,13 +122,30 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      * @param growSkipInterval interval to skip growth step
      * @param wantEntryPruning entry pruning
      */
-    public SimpleBreadthFirstSearchManager(Linguist linguist, Pruner pruner,
-        AcousticScorer scorer, ActiveListFactory activeListFactory,
-        double relativeWordBeamWidth,
-        int growSkipInterval, boolean wantEntryPruning) {
+    public SimpleBreadthFirstSearchManager(Linguist linguist, Pruner pruner, AcousticScorer scorer, ActiveListFactory activeListFactory, double relativeWordBeamWidth, int growSkipInterval,
+        boolean wantEntryPruning) {
+        this(linguist, pruner, scorer, activeListFactory, relativeWordBeamWidth, growSkipInterval, wantEntryPruning, true, true);
+    }
+
+    /**
+     * Creates a manager for simple search
+     *
+     * @param linguist linguist to configure search space
+     * @param pruner pruner to prune extra paths
+     * @param scorer scorer to estimate token probability
+     * @param activeListFactory factory for list of tokens
+     * @param relativeWordBeamWidth relative pruning beam for lookahead
+     * @param growSkipInterval interval to skip growth step
+     * @param wantEntryPruning entry pruning
+     * @param buildWordLattice The property that specifies whether to build a word lattice. (defaultValue = true)
+     * @param keepAllTokens The property that controls whether or not we keep all tokens. If this is set to false, only word tokens are retained, otherwise all tokens are retained. (defaultValue = true)
+     */
+    public SimpleBreadthFirstSearchManager(Linguist linguist, Pruner pruner, AcousticScorer scorer, ActiveListFactory activeListFactory, double relativeWordBeamWidth, int growSkipInterval,
+        boolean wantEntryPruning, boolean buildWordLattice, boolean keepAllTokens) {
+        super(buildWordLattice, keepAllTokens);
         this.name = getClass().getName();
         this.logger = Logger.getLogger(name);
-        this.logMath = LogMath.getLogMath();
+        LogMath logMath = LogMath.getLogMath();
         this.linguist = linguist;
         this.pruner = pruner;
         this.scorer = scorer;
@@ -166,7 +153,6 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
         this.growSkipInterval = growSkipInterval;
         this.wantEntryPruning = wantEntryPruning;
         this.logRelativeWordBeamWidth = logMath.linearToLog(relativeWordBeamWidth);
-        this.keepAllTokens = true;
     }
 
 
@@ -224,7 +210,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      *
      * @return newly created list
      */
-    protected ActiveList undoLastGrowStep() {
+    private ActiveList undoLastGrowStep() {
         ActiveList fixedList = activeList.newInstance();
 
         for (Token token : activeList) {
@@ -263,13 +249,12 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      *
      * @return <code>true</code> if recognition is completed.
      */
-    protected boolean recognize() {
+    private boolean recognize() {
         boolean more = scoreTokens(); // score emitting tokens
         if (more) {
             pruneBranches(); // eliminate poor branches
             currentFrameNumber++;
-            if (growSkipInterval == 0
-                || (currentFrameNumber % growSkipInterval) != 0) {
+            if (growSkipInterval == 0 || (currentFrameNumber % growSkipInterval) != 0) {
                 growBranches(); // extend remaining branches
             }
         }
@@ -280,7 +265,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     /**
      * Gets the initial grammar node from the linguist and creates a GrammarNodeToken
      */
-    protected void localStart() {
+    private void localStart() {
         currentFrameNumber = 0;
         curTokensScored.value = 0;
         ActiveList newActiveList = activeListFactory.newInstance();
@@ -295,7 +280,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     /**
      * Local cleanup for this search manager
      */
-    protected void localStop() {
+    private void localStop() {
     }
 
 
@@ -303,15 +288,15 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      * Goes through the active list of tokens and expands each token, finding the set of successor tokens until all the
      * successor tokens are emitting tokens.
      */
-    protected void growBranches() {
+    private void growBranches() {
         int mapSize = activeList.size() * 10;
         if (mapSize == 0) {
             mapSize = 1;
         }
         growTimer.start();
-        bestTokenMap = new HashMap<SearchState, Token>(mapSize);
+        bestTokenMap = new HashMap<>(mapSize);
         ActiveList oldActiveList = activeList;
-        resultList = new LinkedList<Token>();
+        resultList = new LinkedList<>();
         activeList = activeListFactory.newInstance();
         threshold = oldActiveList.getBeamThreshold();
         wordThreshold = oldActiveList.getBestScore() + logRelativeWordBeamWidth;
@@ -334,7 +319,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      *
      * @return <code>true</code> if there are more frames to score, otherwise, false
      */
-    protected boolean scoreTokens() {
+    private boolean scoreTokens() {
         boolean hasMoreFrames = false;
 
         scoreTimer.start();
@@ -382,7 +367,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
     /**
      * Removes unpromising branches from the active list
      */
-    protected void pruneBranches() {
+    private void pruneBranches() {
         int startSize = activeList.size();
         pruneTimer.start();
         activeList = pruner.prune(activeList);
@@ -397,7 +382,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      * @param state the state of interest
      * @return the best token
      */
-    protected Token getBestToken(SearchState state) {
+    private Token getBestToken(SearchState state) {
         Token best = bestTokenMap.get(state);
         if (logger.isLoggable(Level.FINER) && best != null) {
             logger.finer("BT " + best + " for state " + state);
@@ -413,22 +398,20 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      * @param state the state
      * @return the previous best token for the given state, or null if no previous best token
      */
-    protected Token setBestToken(Token token, SearchState state) {
+    private Token setBestToken(Token token, SearchState state) {
         return bestTokenMap.put(state, token);
     }
-
 
     public ActiveList getActiveList() {
         return activeList;
     }
-
 
     /**
      * Collects the next set of emitting tokens from a token and accumulates them in the active or result lists
      *
      * @param token the token to collect successors from
      */
-    protected void collectSuccessorTokens(Token token) {
+    private void collectSuccessorTokens(Token token) {
         SearchState state = token.getSearchState();
         // If this is a final state, add it to the final list
         if (token.isFinal()) {
@@ -464,7 +447,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
                     continue;
                 }
             }
-            Token predecessor = getResultListPredecessor(token);
+            Token predecessor = super.getResultListPredecessor(token);
 
             // if not emitting, check to see if we've already visited
             // this state during this frame. Expand the token only if we
@@ -534,7 +517,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      *
      * @return the best token map
      */
-    protected Map<SearchState, Token> getBestTokenMap() {
+    private Map<SearchState, Token> getBestTokenMap() {
         return bestTokenMap;
     }
 
@@ -544,7 +527,7 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      *
      * @param bestTokenMap the new best token Map
      */
-    protected void setBestTokenMap(Map<SearchState, Token> bestTokenMap) {
+    private void setBestTokenMap(Map<SearchState, Token> bestTokenMap) {
         this.bestTokenMap = bestTokenMap;
     }
 
@@ -595,16 +578,11 @@ public class SimpleBreadthFirstSearchManager extends TokenSearchManager {
      * @see edu.cmu.sphinx.decoder.search.SearchManager#allocate()
      */
     public void allocate() {
-        totalTokensScored = StatisticsVariable
-            .getStatisticsVariable("totalTokensScored");
-        tokensPerSecond = StatisticsVariable
-            .getStatisticsVariable("tokensScoredPerSecond");
-        curTokensScored = StatisticsVariable
-            .getStatisticsVariable("curTokensScored");
-        tokensCreated = StatisticsVariable
-            .getStatisticsVariable("tokensCreated");
-        viterbiPruned = StatisticsVariable
-            .getStatisticsVariable("viterbiPruned");
+        totalTokensScored = StatisticsVariable.getStatisticsVariable("totalTokensScored");
+        tokensPerSecond = StatisticsVariable.getStatisticsVariable("tokensScoredPerSecond");
+        curTokensScored = StatisticsVariable.getStatisticsVariable("curTokensScored");
+        tokensCreated = StatisticsVariable.getStatisticsVariable("tokensCreated");
+        viterbiPruned = StatisticsVariable.getStatisticsVariable("viterbiPruned");
         beamPruned = StatisticsVariable.getStatisticsVariable("beamPruned");
 
         try {

@@ -25,8 +25,7 @@ public class Word implements Comparable<Word> {
     }
 
     private final String spelling; // the spelling of the word
-    private final Pronunciation[] pronunciations; // pronunciations of this
-                                                  // word
+    private final Pronunciation[] pronunciations; // pronunciations of this word
     private final boolean isFiller;
 
     /**
@@ -36,8 +35,7 @@ public class Word implements Comparable<Word> {
      * @param pronunciations the pronunciations of this word
      * @param isFiller true if the word is a filler word
      */
-    public Word(String spelling, Pronunciation[] pronunciations,
-            boolean isFiller) {
+    public Word(String spelling, Pronunciation[] pronunciations, boolean isFiller) {
         this.spelling = spelling;
         this.pronunciations = pronunciations;
         this.isFiller = isFiller;
@@ -60,33 +58,6 @@ public class Word implements Comparable<Word> {
      */
     public boolean isFiller() {
         return isFiller;
-    }
-
-    /**
-     * Returns true if this word is an end of sentence word
-     *
-     * @return true if the word matches Dictionary.SENTENCE_END_SPELLING
-     */
-    public boolean isSentenceEndWord() {
-        return Dictionary.SENTENCE_END_SPELLING.equals(this.spelling);
-    }
-
-    /**
-     * Returns true if this word is a start of sentence word
-     *
-     * @return true if the word matches Dictionary.SENTENCE_START_SPELLING
-     */
-    public boolean isSentenceStartWord() {
-        return Dictionary.SENTENCE_START_SPELLING.equals(this.spelling);
-    }
-
-    /**
-     * Retrieves the pronunciations of this word
-     *
-     * @return the pronunciations of this word
-     */
-    public Pronunciation[] getPronunciations() {
-        return pronunciations;
     }
 
     /**

@@ -11,8 +11,9 @@
  */
 package edu.cmu.sphinx.frontend.util;
 
+import static java.util.logging.Logger.getLogger;
+
 import edu.cmu.sphinx.api.ByteInputStream;
-import edu.cmu.sphinx.api.InputStreams;
 import edu.cmu.sphinx.frontend.BaseDataProcessor;
 import edu.cmu.sphinx.frontend.Data;
 import edu.cmu.sphinx.frontend.DataEndSignal;
@@ -20,16 +21,12 @@ import edu.cmu.sphinx.frontend.DataProcessingException;
 import edu.cmu.sphinx.frontend.DataStartSignal;
 import edu.cmu.sphinx.frontend.DoubleData;
 import edu.cmu.sphinx.util.TimeFrame;
-import edu.cmu.sphinx.util.props.S4Boolean;
-import edu.cmu.sphinx.util.props.S4Integer;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.logging.Logger;
 
 /**
- * A StreamDataSource converts data from an InputStream into Data objects. One
- * would call {@link #setInputStream(ByteInputStream, TimeFrame) setInputStream} to set
- * the input stream, and call {@link #getData} to obtain the Data object. The
- * InputStream can be an arbitrary stream, for example a data from the network
+ * A StreamDataSource converts data from an InputStream into Data objects.
+ * The InputStream can be an arbitrary stream, for example a data from the network
  * or from a pipe.
  *
  * StreamDataSource is not aware about incoming data format and assumes
@@ -44,78 +41,43 @@ import java.io.InputStream;
  */
 public class StreamDataSource extends BaseDataProcessor {
 
-    /**
-     * The property for the sample rate.
-     */
-    @S4Integer(defaultValue = 16000)
-    public static final String PROP_SAMPLE_RATE = "sampleRate";
+    private static final Logger LOGGER = getLogger(StreamDataSource.class.getName());
 
-    /**
-     * The property for the number of bytes to read from the InputStream each
-     * time.
-     */
-    @S4Integer(defaultValue = 3200)
-    public static final String PROP_BYTES_PER_READ = "bytesPerRead";
+    private final TimeFrame timeFrame = TimeFrame.INFINITE;
+    private final ByteInputStream dataStream;
+    private final int sampleRate;
+    private final int bytesPerRead;
+    private final int bytesPerValue;
+    private final boolean bigEndian;
+    private final boolean signedData;
 
-    /**
-     * The property for the number of bits per value.
-     */
-    @S4Integer(defaultValue = 16)
-    public static final String PROP_BITS_PER_SAMPLE = "bitsPerSample";
-
-    /**
-     * The property specifying whether the input data is big-endian.
-     */
-    @S4Boolean(defaultValue = false)
-    public static final String PROP_BIG_ENDIAN_DATA = "bigEndianData";
-
-    /**
-     * The property specifying whether the input data is signed.
-     */
-    @S4Boolean(defaultValue = true)
-    public static final String PROP_SIGNED_DATA = "signedData";
-
-    private ByteInputStream dataStream;
-    protected int sampleRate;
-    private int bytesPerRead;
-    private int bytesPerValue;
     private long totalValuesRead;
-    private boolean bigEndian;
-    private boolean signedData;
     private boolean streamEndReached;
     private boolean utteranceEndSent;
     private boolean utteranceStarted;
-    protected int bitsPerSample;
 
-    private TimeFrame timeFrame = TimeFrame.INFINITE;
 
-    public StreamDataSource(int sampleRate, int bytesPerRead,
-        int bitsPerSample, boolean bigEndian, boolean signedData) {
-        initLogger();
-        init(sampleRate, bytesPerRead, bitsPerSample, bigEndian, signedData);
-    }
-
-    public StreamDataSource() {
-
-    }
-
-    private void init(int sampleRate,
-        int bytesPerRead,
-        int bitsPerSample,
-        boolean bigEndian,
-        boolean signedData) {
+    /**
+     * @param dataStream Audio data source
+     * @param sampleRate Sample rate of your source data. Should be adapted to the used acoustic model, which is 16 kHz by default.
+     * @param bytesPerRead Number of bytes to read from the InputStream each time. default = 3200
+     * @param bitsPerSample Number of bits per value. default = 16
+     * @param bigEndian Whether the input data is big-endian. default = false
+     * @param signedData Whether the input data is signed. default = true
+     */
+    public StreamDataSource(ByteInputStream dataStream, int sampleRate, int bytesPerRead, int bitsPerSample, boolean bigEndian, boolean signedData) {
+        this.dataStream = dataStream;
+        if (bitsPerSample % 8 != 0) {
+            throw new IllegalArgumentException("bits per sample must be a multiple of 8");
+        }
+        if (sampleRate != 16000 || sampleRate != 8000) {
+            LOGGER.warning("Sample rate of source data is neither 16 nor 8 kHz. Make sure your acoustic model is adapted for your sample rate, otherwise recognition will not work as expected.");
+        }
         this.sampleRate = sampleRate;
-        this.bytesPerRead = bytesPerRead;
-        this.bitsPerSample = bitsPerSample;
-
-        if (this.bitsPerSample % 8 != 0)
-            throw new IllegalArgumentException(
-                "bits per sample must be a multiple of 8");
-
+        this.bytesPerRead = bytesPerRead + (bytesPerRead % 2);
         this.bytesPerValue = bitsPerSample / 8;
         this.bigEndian = bigEndian;
         this.signedData = signedData;
-        this.bytesPerRead += bytesPerRead % 2;
     }
 
     /*
@@ -127,29 +89,6 @@ public class StreamDataSource extends BaseDataProcessor {
     @Override
     public void initialize() {
         super.initialize();
-    }
-
-    public void setInputStream(ByteInputStream inputStream) {
-        setInputStream(inputStream, TimeFrame.INFINITE);
-    }
-
-    public void setInputStream(InputStream inputStream) {
-        setInputStream(InputStreams.fromInputStream(inputStream));
-    }
-
-    /**
-     * Sets the InputStream from which this StreamDataSource reads.
-     *
-     * @param inputStream the InputStream from which audio data comes
-     * @param timeFrame time frame to process
-     */
-    public void setInputStream(ByteInputStream inputStream, TimeFrame timeFrame) {
-        dataStream = inputStream;
-        this.timeFrame = timeFrame;
-        streamEndReached = false;
-        utteranceEndSent = false;
-        utteranceStarted = false;
-        totalValuesRead = 0;
     }
 
     /**
@@ -187,7 +126,7 @@ public class StreamDataSource extends BaseDataProcessor {
                         streamEndReached = true;
                     }
                 } else {
-                    logger.warning("Input stream is not set");
+                    LOGGER.warning("Input stream is not set");
                     if (!utteranceEndSent) {
                         output = new DataEndSignal(getDuration());
                         utteranceEndSent = true;

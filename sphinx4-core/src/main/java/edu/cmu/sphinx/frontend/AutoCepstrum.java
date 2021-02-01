@@ -8,6 +8,7 @@ package edu.cmu.sphinx.frontend;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
+import static java.util.logging.Logger.getLogger;
 
 import edu.cmu.sphinx.frontend.denoise.Denoise;
 import edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 
 /**
@@ -69,6 +71,8 @@ import java.util.Properties;
  */
 public class AutoCepstrum extends BaseDataProcessor {
 
+    private static final Logger LOGGER = getLogger(AutoCepstrum.class.getName());
+
     /**
      * The list of <code>DataProcessor</code>s which were auto-configured for
      * this Cepstrum component.
@@ -83,7 +87,6 @@ public class AutoCepstrum extends BaseDataProcessor {
      * location.
      */
     public AutoCepstrum(Model model) {
-        initLogger();
         initDataProcessors(model);
     }
 
@@ -111,7 +114,7 @@ public class AutoCepstrum extends BaseDataProcessor {
             dataProcessors.add(new Lifter(Integer.parseInt(featParams.getProperty("-lifter"))));
         }
         selectedDataProcessors = DataProcessor.chainProcessors(dataProcessors);
-        logger.info(() -> "Cepstrum component auto-configured as follows: " + toString());
+        LOGGER.info(() -> "Cepstrum component auto-configured as follows: " + toString());
     }
 
     /*
@@ -167,8 +170,7 @@ public class AutoCepstrum extends BaseDataProcessor {
      */
     @Override
     public String toString() {
-        StringBuilder description = new StringBuilder(super.toString())
-            .append(" {");
+        StringBuilder description = new StringBuilder(super.toString()).append(" {");
         for (DataProcessor dp : selectedDataProcessors)
             description.append(dp).append(", ");
         description.setLength(description.length() - 2);
