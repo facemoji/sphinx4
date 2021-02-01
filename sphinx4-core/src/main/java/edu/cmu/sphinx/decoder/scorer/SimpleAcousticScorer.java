@@ -8,7 +8,6 @@ import edu.cmu.sphinx.frontend.Signal;
 import edu.cmu.sphinx.frontend.endpoint.SpeechEndSignal;
 import edu.cmu.sphinx.frontend.util.DataUtil;
 import edu.cmu.sphinx.util.props.ConfigurableAdapter;
-import edu.cmu.sphinx.util.props.S4Component;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,16 +26,14 @@ public class SimpleAcousticScorer extends ConfigurableAdapter implements Acousti
     /**
      * Property the defines the frontend to retrieve features from for scoring
      */
-    @S4Component(type = BaseDataProcessor.class)
-    public final static String FEATURE_FRONTEND = "frontend";
-    protected BaseDataProcessor frontEnd;
-
+    private final BaseDataProcessor frontEnd;
     private final LinkedList<Data> storedData = new LinkedList<>();
     private boolean seenEnd = false;
 
-    public SimpleAcousticScorer() {
-    }
-
+    /**
+     *
+     * @param frontEnd Property the defines the frontend to retrieve features from for scoring
+     */
     public SimpleAcousticScorer(BaseDataProcessor frontEnd) {
         this.frontEnd = frontEnd;
     }
@@ -88,8 +85,7 @@ public class SimpleAcousticScorer extends ConfigurableAdapter implements Acousti
     }
 
     protected Data getNextData() {
-        Data data = frontEnd.getData();
-        return data;
+        return frontEnd.getData();
     }
 
     public void startRecognition() {

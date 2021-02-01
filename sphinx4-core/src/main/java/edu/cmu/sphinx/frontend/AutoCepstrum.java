@@ -14,9 +14,7 @@ import edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank;
 import edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform;
 import edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform2;
 import edu.cmu.sphinx.frontend.transform.Lifter;
-import edu.cmu.sphinx.linguist.acoustic.tiedstate.Loader;
-import edu.cmu.sphinx.util.props.S4Component;
-import java.io.IOException;
+import edu.cmu.sphinx.linguist.acoustic.tiedstate.Model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,34 +70,25 @@ import java.util.Properties;
 public class AutoCepstrum extends BaseDataProcessor {
 
     /**
-     * The property specifying the acoustic model for which this cepstrum will
-     * be configured. For this acoustic model (AM) it is mandatory to specify a
-     * location in the configuration file. The Cepstrum will be configured
-     * based on the feat.params file that will be found in the specified AM
-     * location.
-     */
-    @S4Component(type = Loader.class)
-    public final static String PROP_LOADER = "loader";
-    protected Loader loader;
-
-    /**
      * The list of <code>DataProcessor</code>s which were auto-configured for
      * this Cepstrum component.
      */
     protected List<DataProcessor> selectedDataProcessors = Collections.emptyList();
 
-    public AutoCepstrum(Loader loader) throws IOException {
+    /**
+     * @param model The property specifying the acoustic model for which this cepstrum will
+     * be configured. For this acoustic model (AM) it is mandatory to specify a
+     * location in the configuration file. The Cepstrum will be configured
+     * based on the feat.params file that will be found in the specified AM
+     * location.
+     */
+    public AutoCepstrum(Model model) {
         initLogger();
-        this.loader = loader;
-        loader.load();
-        initDataProcessors();
+        initDataProcessors(model);
     }
 
-    public AutoCepstrum() {
-    }
-
-    private void initDataProcessors() {
-        Properties featParams = loader.getProperties();
+    private void initDataProcessors(Model model) {
+        Properties featParams = model.getProperties();
         List<DataProcessor> dataProcessors = new ArrayList<>();
 
         double lowFreq = parseDouble(featParams.getProperty("-lowerf"));

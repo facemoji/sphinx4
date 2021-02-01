@@ -33,8 +33,7 @@ public class ExtendedStreamTokenizer {
      * @param commentChar      the comment character
      * @param eolIsSignificant true if EOL is significant, false otherwise
      */
-    public ExtendedStreamTokenizer(InputStream inputStream, int commentChar,
-                                   boolean eolIsSignificant) {
+    public ExtendedStreamTokenizer(InputStream inputStream, int commentChar, boolean eolIsSignificant) {
         this(new InputStreamReader(inputStream), eolIsSignificant);
         commentChar(commentChar);
     }
@@ -49,13 +48,12 @@ public class ExtendedStreamTokenizer {
      */
     public ExtendedStreamTokenizer(Reader reader, boolean eolIsSignificant) {
         this.reader = new BufferedReader(reader);
-
         st = new StreamTokenizer(reader);
         st.resetSyntax();
         st.whitespaceChars(0, 32);
         st.wordChars(33, 255);
         st.eolIsSignificant(eolIsSignificant);
-        putbackList = new ArrayList<String>();
+        putbackList = new ArrayList<>();
     }
 
 
@@ -157,12 +155,10 @@ public class ExtendedStreamTokenizer {
      * @throws StreamCorruptedException if the word does not match
      * @throws IOException              if an error occurs while loading the data
      */
-    public void expectString(String expecting)
-            throws IOException {
+    public void expectString(String expecting) throws IOException {
         String line = getString();
         if (!line.equals(expecting)) {
-            corrupt("error matching expected string '" + expecting +
-                    "' in line: '" + line + '\'');
+            corrupt("error matching expected string '" + expecting + "' in line: '" + line + '\'');
         }
     }
 
@@ -175,8 +171,7 @@ public class ExtendedStreamTokenizer {
      * @throws StreamCorruptedException if the word does not match
      * @throws IOException              if an error occurs while loading the data
      */
-    public void expectInt(String name, int expecting)
-            throws IOException {
+    public void expectInt(String name, int expecting) throws IOException {
         int val = getInt(name);
         if (val != expecting) {
             corrupt("Expecting integer " + expecting);
@@ -192,8 +187,7 @@ public class ExtendedStreamTokenizer {
      * @throws StreamCorruptedException if the next value is not a
      * @throws IOException              if an error occurs while loading the data number
      */
-    public int getInt(String name)
-            throws IOException {
+    public int getInt(String name) throws IOException {
         int iVal = 0;
         try {
             String val = getString();
@@ -213,8 +207,7 @@ public class ExtendedStreamTokenizer {
      * @throws StreamCorruptedException if the next value is not a
      * @throws IOException              if an error occurs while loading the data number
      */
-    public double getDouble(String name)
-            throws IOException {
+    public double getDouble(String name) throws IOException {
         double dVal = 0.0;
         try {
             String val = getString();

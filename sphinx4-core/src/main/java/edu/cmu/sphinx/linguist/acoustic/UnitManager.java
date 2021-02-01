@@ -21,6 +21,7 @@ import java.util.logging.Logger;
  */
 public class UnitManager {
 
+  private static final Logger logger = Logger.getLogger(UnitManager.class.getName());
   /**
    * The name for the silence unit
    */
@@ -35,11 +36,9 @@ public class UnitManager {
   private final Map<String, Unit> ciMap = new HashMap<>();
 
   private int nextID = SILENCE_ID + 1;
-  private Logger logger;
 
   public UnitManager() {
     ciMap.put(SILENCE_NAME, SILENCE);
-    logger = Logger.getLogger(getClass().getName());
   }
 
   /**

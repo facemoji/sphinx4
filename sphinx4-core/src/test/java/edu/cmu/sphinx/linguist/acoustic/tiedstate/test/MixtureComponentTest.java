@@ -70,22 +70,9 @@ public class MixtureComponentTest {
         float mean = 20;
         float var = 0.001f;
 
-        MixtureComponent gaussian = new MixtureComponent(new float[]{mean}, new float[][]{{2}}, new float[]{5}, new float[]{var}, null, null);
+        MixtureComponent gaussian = new MixtureComponent(new float[]{mean}, new float[]{var});
         Assert.assertTrue(LogMath.getLogMath().logToLinear(gaussian.getScore(new float[]{2 * mean + 5})) > 10);
     }
 
 
-    /** Tests whether a <code>MixtureComponent</code>s can be cloned (using deep copying). */
-    @Test
-    public void testClone() throws CloneNotSupportedException {
-        MixtureComponent gaussian = new MixtureComponent(new float[]{2}, new float[][]{{3}}, new float[]{4}, new float[]{5}, new float[][]{{6}}, new float[]{7});
-
-        MixtureComponent clonedGaussian = gaussian.clone();
-
-        Assert.assertTrue(!clonedGaussian.equals(gaussian));
-
-        Assert.assertTrue(gaussian.getMean() != clonedGaussian.getMean());
-        Assert.assertTrue(gaussian.getVariance() != clonedGaussian.getVariance());
-        Assert.assertTrue(gaussian.getScore(new float[]{2}) == clonedGaussian.getScore(new float[]{2}));
-    }
 }

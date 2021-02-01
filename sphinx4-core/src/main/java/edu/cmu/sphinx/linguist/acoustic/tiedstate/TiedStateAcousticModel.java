@@ -73,7 +73,7 @@ public class TiedStateAcousticModel implements AcousticModel {
   /**
    * The property that defines the component used to load the acoustic model
    */
-  @S4Component(type = Loader.class)
+  @S4Component(type = Model.class)
   public final static String PROP_LOADER = "loader";
 
   /**
@@ -94,7 +94,7 @@ public class TiedStateAcousticModel implements AcousticModel {
   // -----------------------------
   protected String name;
   protected Logger logger;
-  protected Loader loader;
+  protected Model model;
   protected UnitManager unitManager;
   private boolean useComposites;
   private Properties properties;
@@ -102,11 +102,10 @@ public class TiedStateAcousticModel implements AcousticModel {
   // ----------------------------
   // internal variables
   // -----------------------------
-  final transient private Map<String, SenoneSequence> compositeSenoneSequenceCache = new HashMap<String, SenoneSequence>();
-  private boolean allocated;
+  final transient private Map<String, SenoneSequence> compositeSenoneSequenceCache = new HashMap<>();
 
-  public TiedStateAcousticModel(Loader loader, UnitManager unitManager, boolean useComposites) {
-    this.loader = loader;
+  public TiedStateAcousticModel(Model model, UnitManager unitManager, boolean useComposites) {
+    this.model = model;
     this.unitManager = unitManager;
     this.useComposites = useComposites;
     this.logger = Logger.getLogger(getClass().getName());
@@ -122,11 +121,6 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @throws IOException if the model could not be loaded
    */
   public void allocate() throws IOException {
-    if (!allocated) {
-      loader.load();
-      logInfo();
-      allocated = true;
-    }
   }
 
 
@@ -156,14 +150,11 @@ public class TiedStateAcousticModel implements AcousticModel {
    */
   private HMM getCompositeHMM(Unit unit, HMMPosition position) {
 
-    Unit ciUnit = unitManager.getUnit(unit.getName(), unit.isFiller(),
-        Context.EMPTY_CONTEXT);
+    Unit ciUnit = unitManager.getUnit(unit.getName(), unit.isFiller(), Context.EMPTY_CONTEXT);
 
-    SenoneSequence compositeSequence = getCompositeSenoneSequence(unit,
-        position);
+    SenoneSequence compositeSequence = getCompositeSenoneSequence(unit, position);
 
-    SenoneHMM contextIndependentHMM = (SenoneHMM) lookupNearestHMM(ciUnit,
-        HMMPosition.UNDEFINED, true);
+    SenoneHMM contextIndependentHMM = (SenoneHMM) lookupNearestHMM(ciUnit, HMMPosition.UNDEFINED, true);
     float[][] tmat = contextIndependentHMM.getTransitionMatrix();
     return new SenoneHMM(unit, compositeSequence, tmat, position);
   }
@@ -179,13 +170,12 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @param exactMatch if true, only an exact match is acceptable.
    * @return the HMM that best matches, or null if no match could be found.
    */
-  public HMM lookupNearestHMM(Unit unit, HMMPosition position,
-      boolean exactMatch) {
+  public HMM lookupNearestHMM(Unit unit, HMMPosition position, boolean exactMatch) {
 
     if (exactMatch)
       return lookupHMM(unit, position);
 
-    HMMManager mgr = loader.getHMMManager();
+    HMMManager mgr = model.getHMMManager();
     HMM hmm = mgr.get(position, unit);
 
     if (hmm != null) {
@@ -267,7 +257,7 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @return the unit or null if the unit was not found
    */
   private Unit lookupUnit(String name) {
-    return loader.getContextIndependentUnits().get(name);
+    return model.getContextIndependentUnits().get(name);
   }
 
 
@@ -278,7 +268,7 @@ public class TiedStateAcousticModel implements AcousticModel {
    * type <code>HMM</code>.
    */
   public Iterator<HMM> getHMMIterator() {
-    return loader.getHMMManager().iterator();
+    return model.getHMMManager().iterator();
   }
 
 
@@ -289,7 +279,7 @@ public class TiedStateAcousticModel implements AcousticModel {
    * <code>Unit</code>
    */
   public Iterator<Unit> getContextIndependentUnitIterator() {
-    return loader.getContextIndependentUnits().values().iterator();
+    return model.getContextIndependentUnits().values().iterator();
   }
 
 
@@ -304,16 +294,13 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @param position position in HMM
    * @return senone sequence
    */
-  public SenoneSequence getCompositeSenoneSequence(Unit unit,
-      HMMPosition position) {
+  public SenoneSequence getCompositeSenoneSequence(Unit unit, HMMPosition position) {
     String unitStr = unit.toString();
     SenoneSequence compositeSenoneSequence;
     compositeSenoneSequence = compositeSenoneSequenceCache.get(unitStr);
 
     if (logger.isLoggable(Level.FINE))
-      logger.fine("getCompositeSenoneSequence: "
-          + unit +
-          compositeSenoneSequence == null ? "" : "Cached");
+      logger.fine("getCompositeSenoneSequence: " + unit + (compositeSenoneSequence == null ? "" : "Cached"));
 
     if (compositeSenoneSequence != null)
       return compositeSenoneSequence;
@@ -324,7 +311,7 @@ public class TiedStateAcousticModel implements AcousticModel {
 
     Context context = unit.getContext();
     List<SenoneSequence> senoneSequenceList;
-    senoneSequenceList = new ArrayList<SenoneSequence>();
+    senoneSequenceList = new ArrayList<>();
 
     // collect all senone sequences that match the pattern
     for (Iterator<HMM> i = getHMMIterator(); i.hasNext(); ) {
@@ -366,10 +353,10 @@ public class TiedStateAcousticModel implements AcousticModel {
     // QUESTION: is is possible to have different size senone
     // sequences. For now lets assume the worst case.
 
-    List<CompositeSenone> compositeSenones = new ArrayList<CompositeSenone>();
+    List<CompositeSenone> compositeSenones = new ArrayList<>();
     float logWeight = 0.0f;
     for (int i = 0; i < longestSequence; i++) {
-      Set<Senone> compositeSenoneSet = new HashSet<Senone>();
+      Set<Senone> compositeSenoneSet = new HashSet<>();
       for (SenoneSequence senoneSequence : senoneSequenceList) {
         if (i < senoneSequence.getSenones().length) {
           Senone senone = senoneSequence.getSenones()[i];
@@ -400,7 +387,7 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @return the left context size
    */
   public int getLeftContextSize() {
-    return loader.getLeftContextSize();
+    return model.getLeftContextSize();
   }
 
 
@@ -410,7 +397,7 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @return the left context size
    */
   public int getRightContextSize() {
-    return loader.getRightContextSize();
+    return model.getRightContextSize();
   }
 
 
@@ -422,23 +409,12 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @return the HMM that exactly matches, or null if no match could be found.
    */
   private SenoneHMM lookupHMM(Unit unit, HMMPosition position) {
-    return (SenoneHMM) loader.getHMMManager().get(position, unit);
+    return (SenoneHMM) model.getHMMManager().get(position, unit);
   }
 
 
   public Senone getSenone(long id) {
-    return loader.getSenonePool().get((int) id);
-  }
-
-  /**
-   * Dumps information about this model to the logger
-   */
-  protected void logInfo() {
-    if (loader != null) {
-      loader.logInfo();
-    }
-    logger.info("CompositeSenoneSequences: " +
-        compositeSenoneSequenceCache.size());
+    return model.getSenonePool().get((int) id);
   }
 
 
@@ -449,7 +425,7 @@ public class TiedStateAcousticModel implements AcousticModel {
    * @return hmm the hmm or null if it was not found
    */
   private SenoneHMM getHMMAtAnyPosition(Unit unit) {
-    HMMManager mgr = loader.getHMMManager();
+    HMMManager mgr = model.getHMMManager();
     for (HMMPosition pos : HMMPosition.values()) {
       SenoneHMM hmm = (SenoneHMM) mgr.get(pos, unit);
       if (hmm != null)
@@ -468,7 +444,7 @@ public class TiedStateAcousticModel implements AcousticModel {
    */
   private SenoneHMM getHMMInSilenceContext(Unit unit, HMMPosition position) {
     SenoneHMM hmm = null;
-    HMMManager mgr = loader.getHMMManager();
+    HMMManager mgr = model.getHMMManager();
     Context context = unit.getContext();
 
     if (context instanceof LeftRightContext) {

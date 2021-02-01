@@ -13,17 +13,14 @@
 package edu.cmu.sphinx.linguist.acoustic.tiedstate;
 
 
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Used to pool shared objects in the acoustic model */
 public class Pool<T> {
 
-    public enum Feature { NUM_SENONES, NUM_GAUSSIANS_PER_STATE, NUM_STREAMS }
-
     private final String name;
     private final List<T> pool;
-    private final Map<Feature, Integer> features = new EnumMap<Feature, Integer>(Feature.class);
 
     /**
      * Creates a new pool.
@@ -32,7 +29,7 @@ public class Pool<T> {
      */
     public Pool(String name) {
         this.name = name;
-        pool = new ArrayList<T>();
+        pool = new ArrayList<>();
     }
 
     /**
@@ -53,16 +50,6 @@ public class Pool<T> {
      */
     public T get(int id) {
         return pool.get(id);
-    }
-
-    /**
-     * Returns the ID of a given object from the pool.
-     *
-     * @param object the object
-     * @return the index
-     */
-    public int indexOf(T object) {
-        return pool.indexOf(object);
     }
 
     /**
@@ -88,34 +75,9 @@ public class Pool<T> {
         return pool.size();
     }
 
-    /**
-     * Dump information on this pool to the given logger.
-     *
-     * @param logger the logger to send the info to
-     */
-    public void logInfo(Logger logger) {
-        logger.info("Pool " + name + " Entries: " + size());
+    @Override
+    public String toString() {
+        return "Pool " + name + " Entries: " + size();
     }
 
-    /**
-     * Sets a feature for this pool.
-     *
-     * @param feature feature to set
-     * @param value the value for the feature
-     */
-    public void setFeature(Feature feature, int value) {
-        features.put(feature, value);
-    }
-
-    /**
-     * Retrieves a feature from this pool.
-     *
-     * @param feature feature to get
-     * @param defaultValue the defaultValue for the pool
-     * @return the value for the feature
-     */
-    public int getFeature(Feature feature, int defaultValue) {
-        Integer val = features.get(feature);
-        return val == null ? defaultValue : val;
-    }
 }

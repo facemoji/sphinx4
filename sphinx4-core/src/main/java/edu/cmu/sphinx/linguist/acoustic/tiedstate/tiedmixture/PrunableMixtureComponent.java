@@ -1,9 +1,9 @@
 /*
- * Copyright 2014 Carnegie Mellon University.  
+ * Copyright 2014 Carnegie Mellon University.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -23,21 +23,17 @@ public class PrunableMixtureComponent extends MixtureComponent {
     private float score = LogMath.LOG_ZERO;
     private float partScore = LogMath.LOG_ZERO;
     private int id;
-    
+
     public PrunableMixtureComponent(
-            float[] mean,
-            float[][] meanTransformationMatrix,
-            float[] meanTransformationVector,
-            float[] variance,
-            float[][] varianceTransformationMatrix,
-            float[] varianceTransformationVector,
-            float distFloor,
-            float varianceFloor,
-            int id) {
-        super(mean, meanTransformationMatrix, meanTransformationVector, variance, varianceTransformationMatrix, varianceTransformationVector, distFloor, varianceFloor);
+        float[] mean,
+        float[] variance,
+        float distFloor,
+        float varianceFloor,
+        int id) {
+        super(mean, variance, distFloor, varianceFloor);
         this.id = id;
     }
-    
+
     private float convertScore(float val) {
         // Convert to the appropriate base.
         val = LogMath.getLogMath().lnToLog(val);
@@ -52,10 +48,10 @@ public class PrunableMixtureComponent extends MixtureComponent {
         if (val < distFloor) {
             val = distFloor;
         }
-        
+
         return val;
     }
-    
+
     public boolean isTopComponent(float[] feature, float threshold) {
 
         float logDval = logPreComputedGaussianFactor;
@@ -70,14 +66,14 @@ public class PrunableMixtureComponent extends MixtureComponent {
             if (logDval < threshold)
                 return false;
         }
-        
-        partScore = logDval;  
+
+        partScore = logDval;
         score = convertScore(logDval);
         return true;
     }
-    
+
     public void updateScore(float[] feature) {
-        
+
         float logDval = logPreComputedGaussianFactor;
 
         // First, compute the argument of the exponential function in
@@ -88,19 +84,19 @@ public class PrunableMixtureComponent extends MixtureComponent {
             float logDiff = feature[i] - meanTransformed[i];
             logDval += logDiff * logDiff * precisionTransformed[i];
         }
-        
-        partScore = logDval;  
+
+        partScore = logDval;
         score = convertScore(logDval);
     }
-    
+
     public float getStoredScore() {
         return score;
     }
-    
+
     public float getPartialScore() {
         return partScore;
     }
-    
+
     public int getId() {
         return id;
     }

@@ -21,7 +21,7 @@ Bug Fixes:
  * Intelligent sorting in paritioner fixes stack overflow when tokens
  have identical scores
  * Various bug fixes
-    
+
 Thanks:
 
   Timo Bauman, Nasir Hussain, Michele Alessandrini, Evandro Goueva,
@@ -37,7 +37,7 @@ Release Date:  August 2010
 
 New Features and Improvements:
 
-    * Alignment demo and grammar to align long speech recordings to 
+    * Alignment demo and grammar to align long speech recordings to
       transcription and get word times
     * Lattice grammar for multipass decoding
     * Explicit-backoff in LexTree linguist
@@ -57,7 +57,7 @@ Bug Fixes:
     * JSGF parser fixes
     * Documentation improvements
     * Debian package stuff
-    
+
 Thanks:
 
     Antoine Raux, Marek Lesiak, Yaniv Kunda, Brian Romanowski, Tony
@@ -76,7 +76,7 @@ New Features and Improvements:
     * Large arbitrary-order language models
     * Simplified and reworked model loading code
     * Raw configuration and and demos
-    * HTK model loader
+    * HTK model model
     * A lot of code optimizations
     * JSAPI-independent JSGF parser
     * Noise filtering components
@@ -87,7 +87,7 @@ Bug fixes:
 
     * Lots of bug fixes: PLP extraction, race-conditions
     in scoring, etc.
-    
+
 Thanks:
 
     Peter Wolf, Yaniv Kunda, Antoine Raux, Dirk Schnelle-Walka,
@@ -115,7 +115,7 @@ Bug fixes:
     * Huge memory optimization of the lattice compression
     * More stable fronend work with DataStart and DataEnd and optional
       SpeechStart/SpeechEnd
-    
+
 Thanks:
 
     Yaniv Kunda, Michele Alessandrini, Holger Brandl, Timo Baumann,
@@ -135,7 +135,7 @@ New Features and Improvments:
     * xml-free instantiation of new systems
     * improved feature extraction (better voice activity detection, many bugfixes)
 	* Cleaned up some of the core APIs
-    * include-tag for configuration files 
+    * include-tag for configuration files
     * better JavaSound support
 	* fully qualified grammar names in JSGF (Roger Toenz)
 	* support for dictionary addenda in the FastDictionary (Gregg Liming)
@@ -175,7 +175,7 @@ Bug fixes:
     * Lots of bug fixes
 
 Documentation:
-    
+
     * Added the Sphinx-4 FAQ
     * Added scripts and instructions for building a WSJ5k language model
     from LDC data.

@@ -68,7 +68,7 @@
 
   <component name="acousticModel"
     type="edu.cmu.sphinx.linguist.acoustic.tiedstate.TiedStateAcousticModel">
-    <property name="loader" value="acousticModelLoader"/>
+    <property name="model" value="acousticModelLoader"/>
     <property name="unitManager" value="unitManager"/>
   </component>
 
@@ -94,7 +94,6 @@
       <item>autoCepstrum </item>
       <item>liveCMN </item>
       <item>featureExtraction </item>
-      <item>featureTransform </item>
     </propertylist>
   </component>
 
@@ -125,7 +124,7 @@
 
   <component name="autoCepstrum"
     type="edu.cmu.sphinx.frontend.AutoCepstrum">
-    <property name="loader" value="acousticModelLoader"/>
+    <property name="model" value="acousticModelLoader"/>
   </component>
 
   <component name="liveCMN"
@@ -134,10 +133,6 @@
   <component name="featureExtraction"
     type="edu.cmu.sphinx.frontend.feature.DeltasFeatureExtractor"/>
 
-  <component name="featureTransform"
-    type="edu.cmu.sphinx.frontend.feature.FeatureTransform">
-    <property name="loader" value="acousticModelLoader"/>
-  </component>
 
   <component name="speedTracker"
     type="edu.cmu.sphinx.instrumentation.SpeedTracker">

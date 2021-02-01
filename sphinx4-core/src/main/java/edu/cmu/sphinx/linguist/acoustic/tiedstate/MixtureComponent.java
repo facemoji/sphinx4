@@ -14,7 +14,6 @@ package edu.cmu.sphinx.linguist.acoustic.tiedstate;
 
 import edu.cmu.sphinx.frontend.FloatData;
 import edu.cmu.sphinx.util.LogMath;
-
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -26,31 +25,31 @@ import java.util.Arrays;
  * <p>
  * Note that all scores and weights are in LogMath log base
  */
-// TODO: Since many of the subcomponents of a MixtureComponent are shared, are 
+// TODO: Since many of the subcomponents of a MixtureComponent are shared, are
 // there some potential opportunities to reduce the number of computations in scoring
 // senones by sharing intermediate results for these subcomponents?
 @SuppressWarnings("serial")
 public class MixtureComponent implements Cloneable, Serializable {
 
-    private float[] mean;
-    /** Mean after transformed by the adaptation parameters. */
+    private final float[] mean;
+    private final float[] variance;
+    private final float varianceFloor;
+    /**
+     * Mean after transformed by the adaptation parameters.
+     */
     protected float[] meanTransformed;
-    private float[][] meanTransformationMatrix;
-    private float[] meanTransformationVector;
-    private float[] variance;
-    /** Precision is the inverse of the variance. This includes adaptation. */
-    protected float[] precisionTransformed;
-    private float[][] varianceTransformationMatrix;
-    private float[] varianceTransformationVector;
 
     protected float distFloor;
-    private float varianceFloor;
+    /**
+     * Precision is the inverse of the variance. This includes adaptation.
+     */
+    protected float[] precisionTransformed;
 
     public static final float DEFAULT_VAR_FLOOR = 0.0001f; // this also seems to be the default of SphinxTrain
     public static final float DEFAULT_DIST_FLOOR = 0.0f;
 
     protected float logPreComputedGaussianFactor;
-    
+
     /**
      * Create a MixtureComponent with the given sub components.
      *
@@ -58,62 +57,24 @@ public class MixtureComponent implements Cloneable, Serializable {
      * @param variance the variance for this PDF
      */
     public MixtureComponent(float[] mean, float[] variance) {
-        this(mean, null, null, variance, null, null, DEFAULT_DIST_FLOOR, DEFAULT_VAR_FLOOR);
+        this(mean, variance, DEFAULT_DIST_FLOOR, DEFAULT_VAR_FLOOR);
     }
-
 
     /**
      * Create a MixtureComponent with the given sub components.
      *
-     * @param mean                         the mean vector for this PDF
-     * @param meanTransformationMatrix     transformation matrix for this pdf
-     * @param meanTransformationVector     transform vector for this PDF
-     * @param variance                     the variance for this PDF
-     * @param varianceTransformationMatrix var. transform matrix for this PDF
-     * @param varianceTransformationVector var. transform vector for this PDF
+     * @param mean the mean vector for this PDF
+     * @param variance the variance for this PDF
+     * @param distFloor the lowest score value (in linear domain)
+     * @param varianceFloor the lowest value for the variance
      */
-    public MixtureComponent(
-            float[] mean,
-            float[][] meanTransformationMatrix,
-            float[] meanTransformationVector,
-            float[] variance,
-            float[][] varianceTransformationMatrix,
-            float[] varianceTransformationVector) {
-        this(mean, meanTransformationMatrix, meanTransformationVector, variance,
-                varianceTransformationMatrix, varianceTransformationVector, DEFAULT_DIST_FLOOR, DEFAULT_VAR_FLOOR);
-    }
-
-
-    /**
-     * Create a MixtureComponent with the given sub components.
-     *
-     * @param mean                         the mean vector for this PDF
-     * @param meanTransformationMatrix     transformation matrix for this pdf
-     * @param meanTransformationVector     transform vector for this PDF
-     * @param variance                     the variance for this PDF
-     * @param varianceTransformationMatrix var. transform matrix for this PDF
-     * @param varianceTransformationVector var. transform vector for this PDF
-     * @param distFloor                    the lowest score value (in linear domain)
-     * @param varianceFloor                the lowest value for the variance
-     */
-    public MixtureComponent(
-            float[] mean,
-            float[][] meanTransformationMatrix,
-            float[] meanTransformationVector,
-            float[] variance,
-            float[][] varianceTransformationMatrix,
-            float[] varianceTransformationVector,
-            float distFloor,
-            float varianceFloor) {
-
-        assert variance.length == mean.length;
+    public MixtureComponent(float[] mean, float[] variance, float distFloor, float varianceFloor) {
+        if (variance.length != mean.length) {
+            throw new IllegalArgumentException("Cannot create MixtureComponent. Variance and mean vectors must have the same size.");
+        }
 
         this.mean = mean;
-        this.meanTransformationMatrix = meanTransformationMatrix;
-        this.meanTransformationVector = meanTransformationVector;
         this.variance = variance;
-        this.varianceTransformationMatrix = varianceTransformationMatrix;
-        this.varianceTransformationVector = varianceTransformationVector;
 
         assert distFloor >= 0.0 : "distFloot seems to be already in log-domain";
         this.distFloor = LogMath.getLogMath().linearToLog(distFloor);
@@ -218,7 +179,7 @@ public class MixtureComponent implements Cloneable, Serializable {
      * in the Gaussian can be computed in advance, keeping in mind that the the determinant of the
      * covariance matrix, for the degenerate case of a mixture with independent components - only
      * the diagonal elements are non-zero - is simply the product of the diagonal elements. <p>
-     * We're computing the expression: 
+     * We're computing the expression:
      * <pre>{sqrt((2 * PI) ^ N) * det(Var))}</pre>
      *
      * @return the precomputed distance
@@ -254,84 +215,12 @@ public class MixtureComponent implements Cloneable, Serializable {
     /** Applies transformations to means and variances. */
     public void transformStats() {
         int featDim = mean.length;
-        /*
-        * The transformed mean vector is given by:
-        *
-        * <p><b>M = A * m + B</b></p>
-        *
-        * where <b>M</b> and <b>m</b> are the mean vector after and
-        * before transformation, respectively, and <b>A</b> and
-        * <b>B</b> are the transformation matrix and vector,
-        * respectively.
-        *
-        * if A or B are <code>null</code> the according substeps are skipped
-        */
-        if (meanTransformationMatrix != null) {
-            meanTransformed = new float[featDim];
-            for (int i = 0; i < featDim; i++)
-                for (int j = 0; j < featDim; j++)
-                    meanTransformed[i] += mean[j] * meanTransformationMatrix[i][j];
-        } else {
-            meanTransformed = mean;
-        }
-
-        if (meanTransformationVector != null)
-            for (int k = 0; k < featDim; k++)
-                meanTransformed[k] += meanTransformationVector[k];
-
-        /**
-         * We do analogously with the variance. In this case, we also
-         * invert the variance, and work with precision instead of
-         * variance.
-         */
-        if (varianceTransformationMatrix != null) {
-            precisionTransformed = new float[variance.length];
-            for (int i = 0; i < featDim; i++)
-                for (int j = 0; j < featDim; j++)
-                    precisionTransformed[i] += variance[j] * varianceTransformationMatrix[i][j];
-        } else
-            precisionTransformed = variance.clone();
-
-        if (varianceTransformationVector != null)
-            for (int k = 0; k < featDim; k++)
-                precisionTransformed[k] += varianceTransformationVector[k];
-
+        meanTransformed = mean;
+        precisionTransformed = variance.clone();
         for (int k = 0; k < featDim; k++) {
             float flooredPrecision = (precisionTransformed[k] < varianceFloor ? varianceFloor : precisionTransformed[k]);
             precisionTransformed[k] = 1.0f / (-2.0f * flooredPrecision);
         }
-    }
-
-    @Override
-    public MixtureComponent clone() throws CloneNotSupportedException {
-        MixtureComponent mixComp = (MixtureComponent)super.clone();
-
-        mixComp.distFloor = distFloor;
-        mixComp.varianceFloor = varianceFloor;
-        mixComp.logPreComputedGaussianFactor = logPreComputedGaussianFactor;
-
-        mixComp.mean = this.mean != null ? this.mean.clone() : null;
-        if (meanTransformationMatrix != null) {
-            mixComp.meanTransformationMatrix = this.meanTransformationMatrix.clone();
-            for (int i = 0; i < meanTransformationMatrix.length; i++)
-                mixComp.meanTransformationMatrix[i] = meanTransformationMatrix[i].clone();
-        }
-        mixComp.meanTransformationVector = this.meanTransformationVector != null ?
-                this.meanTransformationVector.clone() : null;
-        mixComp.meanTransformed = this.meanTransformed != null ? this.meanTransformed.clone() : null;
-
-        mixComp.variance = this.variance != null ? this.variance.clone() : null;
-        if (varianceTransformationMatrix != null) {
-            mixComp.varianceTransformationMatrix = this.varianceTransformationMatrix.clone();
-            for (int i = 0; i < varianceTransformationMatrix.length; i++)
-                mixComp.varianceTransformationMatrix[i] = varianceTransformationMatrix[i].clone();
-        }
-        mixComp.varianceTransformationVector = this.varianceTransformationVector != null ?
-                this.varianceTransformationVector.clone() : null;
-        mixComp.precisionTransformed = this.precisionTransformed != null ?
-                this.precisionTransformed.clone() : null;
-
-        return mixComp;
     }
 
 

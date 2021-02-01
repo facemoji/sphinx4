@@ -1,11 +1,11 @@
 /*
- * Copyright 1999-2002 Carnegie Mellon University.  
- * Portions Copyright 2002 Sun Microsystems, Inc.  
+ * Copyright 1999-2002 Carnegie Mellon University.
+ * Portions Copyright 2002 Sun Microsystems, Inc.
  * Portions Copyright 2002 Mitsubishi Electric Research Laboratories.
  * All Rights Reserved.  Use is subject to license terms.
- * 
+ *
  * See the file "license.terms" for information on usage and
- * redistribution of this file, and for a DISCLAIMER OF ALL 
+ * redistribution of this file, and for a DISCLAIMER OF ALL
  * WARRANTIES.
  *
  */
@@ -27,12 +27,17 @@ public enum HMMPosition {
     private static final HMMPosition[] posByRep;
     static {
         int maxChar = 0;
-        for (HMMPosition pos : values()) // determine max char to use as index
-            if (pos.rep.charAt(0) > maxChar)
+        // determine max char to use as index
+        for (HMMPosition pos : values()) {
+            if (pos.rep.charAt(0) > maxChar) {
                 maxChar = pos.rep.charAt(0);
+            }
+        }
         posByRep = new HMMPosition[maxChar + 1];
-        for (HMMPosition pos : values()) // cache HMMPositions according to rep
+        // cache HMMPositions according to rep
+        for (HMMPosition pos : values()) {
             posByRep[pos.rep.charAt(0)] = pos;
+        }
     }
 
     private final String rep;
@@ -43,7 +48,7 @@ public enum HMMPosition {
      * @param rep the string representation
      * @return the HMMPosition represented by rep or null if not found
      */
-    private HMMPosition(char rep) {
+    HMMPosition(char rep) {
         this.rep = String.valueOf(rep);
     }
 

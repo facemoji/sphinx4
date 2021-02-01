@@ -12,8 +12,6 @@
 
 package edu.cmu.sphinx.util;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.PrintWriter;
 
 
@@ -114,20 +112,6 @@ public class Utilities {
                 System.out.println("OT: " + name + ' ' + count);
             }
         }
-    }
-
-
-    /**
-     * Reads the next little-endian integer from the given DataInputStream.
-     *
-     * @param dataStream the DataInputStream to read from
-     * @return an integer
-     * @throws IOException if something went wrong
-     */
-    public static int readLittleEndianInt(DataInputStream dataStream)
-            throws IOException {
-        return dataStream.readUnsignedByte() | dataStream.readUnsignedByte() << 8 |
-               dataStream.readUnsignedByte() << 16 | dataStream.readUnsignedByte() << 24;
     }
 
 

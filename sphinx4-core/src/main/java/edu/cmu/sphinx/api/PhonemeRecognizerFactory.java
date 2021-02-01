@@ -29,7 +29,9 @@ import edu.cmu.sphinx.frontend.transform.DiscreteFourierTransform;
 import edu.cmu.sphinx.frontend.window.RaisedCosineWindower;
 import edu.cmu.sphinx.linguist.acoustic.AcousticModel;
 import edu.cmu.sphinx.linguist.acoustic.UnitManager;
-import edu.cmu.sphinx.linguist.acoustic.tiedstate.Loader;
+import edu.cmu.sphinx.linguist.acoustic.tiedstate.Model;
+import edu.cmu.sphinx.linguist.acoustic.tiedstate.ModelData;
+import edu.cmu.sphinx.linguist.acoustic.tiedstate.ResourceSphinx3ModelData;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.Sphinx3Loader;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.TiedStateAcousticModel;
 import edu.cmu.sphinx.linguist.allphone.AllphoneLinguist;
@@ -45,11 +47,19 @@ import java.util.List;
  */
 public class PhonemeRecognizerFactory {
 
-    public static Recognizer createPhonemeRecognizer(DataProcessor dataSource) {
+    public static Recognizer createPhonemeRecognizer(DataProcessor dataSource, String modelLocation) {
         UnitManager unitManager = new UnitManager();
-        Sphinx3Loader loader = new Sphinx3Loader("resource:/edu/cmu/sphinx/models/en-us/en-us", unitManager, 0f, 1e-7f, 0.0001f, 4, true);
-        AcousticModel acousticModel = new TiedStateAcousticModel(loader, unitManager, true);
-        FrontEnd frontEnd = getFrontEnd(dataSource, loader);
+        // fixme   Stupid java cannot read a resource into byte[]. Find a better way.
+        final ModelData modelData = ResourceSphinx3ModelData.readFrom(modelLocation);
+        Sphinx3Loader loader = new Sphinx3Loader(unitManager, 0f, 1e-7f, 0.0001f, 4, true);
+        final Model model;
+        try {
+            model = loader.load(modelData);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load model files");
+        }
+        AcousticModel acousticModel = new TiedStateAcousticModel(model, unitManager, true);
+        FrontEnd frontEnd = getFrontEnd(dataSource, model);
         SimpleBreadthFirstSearchManager searchManager = new SimpleBreadthFirstSearchManager(
             new AllphoneLinguist(acousticModel, 0.05f, false),
             new SimplePruner(),
@@ -64,13 +74,8 @@ public class PhonemeRecognizerFactory {
     }
 
     // TODO Improve this mess
-    private static FrontEnd getFrontEnd(DataProcessor dataSource, Loader loader) {
-        AutoCepstrum autoCepstrum = null;
-        try {
-            autoCepstrum = new AutoCepstrum(loader);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to initialize Cepstrum Data processor", e);
-        }
+    private static FrontEnd getFrontEnd(DataProcessor dataSource, Model model) {
+        AutoCepstrum autoCepstrum = new AutoCepstrum(model);
 
         List<DataProcessor> frontEndList = Arrays.asList(
             dataSource,
